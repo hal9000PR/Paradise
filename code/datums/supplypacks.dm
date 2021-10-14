@@ -193,14 +193,6 @@ GLOBAL_LIST_INIT(all_supply_groups, list(SUPPLY_EMERGENCY,SUPPLY_SECURITY,SUPPLY
 	containername = "special ops crate"
 	hidden = 1
 
-/datum/supply_packs/emergency/syndicate
-	name = "ERROR_NULL_ENTRY"
-	contains = list(/obj/item/storage/box/syndicate)
-	cost = 140
-	containertype = /obj/structure/closet/crate
-	containername = "crate"
-	hidden = 1
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Security ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
