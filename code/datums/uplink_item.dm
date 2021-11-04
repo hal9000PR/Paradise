@@ -167,18 +167,19 @@ GLOBAL_LIST_INIT(uplink_items, subtypesof(/datum/uplink_item))
 //Clown
 /datum/uplink_item/jobspecific/clowngrenade
 	name = "Banana Grenade"
-	desc = "A grenade that explodes into HONK! brand banana peels that are genetically modified to be extra slippery and extrude caustic acid when stepped on"
+	desc = "A grenade that explodes into HONK! brand banana peels that are genetically modified to be extra slippery and extrude caustic acid when stepped on."
 	reference = "BG"
 	item = /obj/item/grenade/clown_grenade
 	cost = 5
 	job = list("Clown")
 
-/datum/uplink_item/jobspecific/clownmagboots
-	name = "Clown Magboots"
-	desc = "A pair of modified clown shoes fitted with an advanced magnetic traction system. Look and sound exactly like regular clown shoes unless closely inspected."
-	reference = "CM"
-	item = /obj/item/clothing/shoes/magboots/clown
+/datum/uplink_item/jobspecific/clownslippers
+	name = "Clown Acrobatic Shoes"
+	desc = "A pair of modified clown shoes fitted with a built-in propulsion system that allows the user to perform a short slip below anyone. Turning on the waddle dampeners removes the slowdown on the shoes."
+	reference = "CAS"
+	item = /obj/item/clothing/shoes/clown_shoes/slippers
 	cost = 3
+	surplus = 75
 	job = list("Clown")
 
 /datum/uplink_item/jobspecific/trick_revolver
@@ -876,6 +877,7 @@ GLOBAL_LIST_INIT(uplink_items, subtypesof(/datum/uplink_item))
 	item = /obj/item/CQC_manual
 	cost = 13
 	cant_discount = TRUE
+	gamemodes = list(/datum/game_mode/nuclear)
 
 /datum/uplink_item/stealthy_weapons/cameraflash
 	name = "Camera Flash"
@@ -971,6 +973,14 @@ GLOBAL_LIST_INIT(uplink_items, subtypesof(/datum/uplink_item))
 	item = /obj/item/clothing/gloves/color/black/krav_maga/combat
 	cost = 5
 	gamemodes = list(/datum/game_mode/nuclear)
+
+/datum/uplink_item/stealthy_weapons/combat_minus
+	name = "Experimental Krav Gloves"
+	desc = "Experimental gloves with installed nanochips that teach you Krav Maga when worn, great as a cheap backup weapon. Warning, the nanochips will override any other fighting styles such as CQC. Do not look as fly as the Warden's"
+	reference = "CGM"
+	item = /obj/item/clothing/gloves/color/black/krav_maga
+	cost = 10
+	excludefrom = list(/datum/game_mode/nuclear)
 
 // GRENADES AND EXPLOSIVES
 
