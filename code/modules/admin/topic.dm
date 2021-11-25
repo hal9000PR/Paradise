@@ -137,12 +137,6 @@
 					to_chat(usr, "<span class='warning'>Not enough parameters (Requires ckey, reason and job)</span>")
 					return
 				job_ban = TRUE
-			if(BANTYPE_APPEARANCE)
-				if(!banckey || !banreason)
-					to_chat(usr, "<span class='warning'>Not enough parameters (Requires ckey and reason)</span>")
-					return
-				banduration = null
-				banjob = null
 			if(BANTYPE_ADMIN_PERMA)
 				if(!banckey || !banreason)
 					to_chat(usr, "<span class='warning'>Not enough parameters (Requires ckey and reason)</span>")
@@ -492,55 +486,6 @@
 		to_chat(GLOB.banlist_savefile["bannedby"], usr.ckey)
 		GLOB.banlist_savefile.cd = "/base"
 		unbanpanel()
-
-	/////////////////////////////////////new ban stuff
-
-	else if(href_list["appearanceban"])
-		if(!check_rights(R_BAN))
-			return
-		var/mob/M = locateUID(href_list["appearanceban"])
-		if(!istype(M, /mob))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob</span>")
-			return
-		if(!M.ckey)	//sanity
-			to_chat(usr, "<span class='warning'>This mob has no ckey</span>")
-			return
-		var/ban_ckey_param = href_list["dbbanaddckey"]
-
-		var/banreason = appearance_isbanned(M)
-		if(banreason)
-	/*		if(!config.ban_legacy_system)
-				to_chat(usr, "<span class='warning'>Unfortunately, database based unbanning cannot be done through this panel</span>")
-				DB_ban_panel(M.ckey)
-				return	*/
-			switch(alert("Reason: '[banreason]' Remove appearance ban?","Please Confirm","Yes","No"))
-				if("Yes")
-					log_admin("[key_name(usr)] removed [key_name(M)]'s appearance ban")
-					DB_ban_unban(M.ckey, BANTYPE_APPEARANCE)
-					appearance_unban(M)
-					message_admins("<span class='notice'>[key_name_admin(usr)] removed [key_name_admin(M)]'s appearance ban</span>", 1)
-					to_chat(M, "<span class='warning'><big><b>[usr.client.ckey] has removed your appearance ban.</b></big></span>")
-
-		else switch(alert("Appearance ban [M.ckey]?",,"Yes","No", "Cancel"))
-			if("Yes")
-				var/reason = input(usr,"Please state the reason","Reason") as message|null
-				if(!reason)
-					return
-				M = admin_ban_mobsearch(M, ban_ckey_param, usr)
-				log_admin("[key_name(usr)] appearance banned [key_name(M)]. \nReason: [reason]")
-				DB_ban_record(BANTYPE_APPEARANCE, M, -1, reason)
-				appearance_fullban(M, "[reason]; By [usr.ckey] on [time2text(world.realtime)]")
-				add_note(M.ckey, "Appearance banned - [reason]", null, usr.ckey, 0)
-				message_admins("<span class='notice'>[key_name_admin(usr)] appearance banned [key_name_admin(M)]</span>", 1)
-				to_chat(M, "<span class='warning'><big><b>You have been appearance banned by [usr.client.ckey].</b></big></span>")
-				to_chat(M, "<span class='danger'>The reason is: [reason]</span>")
-				to_chat(M, "<span class='warning'>Appearance ban can be lifted only upon request.</span>")
-				if(GLOB.configuration.url.banappeals_url)
-					to_chat(M, "<span class='warning'>To try to resolve this matter head to [GLOB.configuration.url.banappeals_url]</span>")
-				else
-					to_chat(M, "<span class='warning'>No ban appeals URL has been set.</span>")
-			if("No")
-				return
 
 	else if(href_list["jobban2"])
 //		if(!check_rights(R_BAN))	return
@@ -3522,51 +3467,22 @@
 		if(!check_rights(R_ADMIN))
 			return
 
-		var/target_ckey = href_list["viewkarma"]
-
-		var/total_karma = 0
-		var/spent_karma = 0
-		var/unlocked_jobs = ""
-		var/unlocked_species = ""
-		// Get their totals
-		var/datum/db_query/query_get_totals = SSdbcore.NewQuery("SELECT karma, karmaspent FROM karmatotals WHERE byondkey=:ckey", list(
-			"ckey" = target_ckey
-		))
-		if(!query_get_totals.warn_execute())
-			qdel(query_get_totals)
+		var/client/C = GLOB.directory[href_list["viewkarma"]]
+		if(!C)
 			return
-		// Even if there aint a row, we can still assume the defaults of 0 above
-		if(query_get_totals.NextRow())
-			total_karma = query_get_totals.item[1]
-			spent_karma = query_get_totals.item[2]
-
-		qdel(query_get_totals)
-
-		// Now get their unlocks
-		var/datum/db_query/query_get_unlocks = SSdbcore.NewQuery("SELECT job, species FROM whitelist WHERE ckey=:ckey", list(
-			"ckey" = target_ckey
-		))
-		if(!query_get_unlocks.warn_execute())
-			qdel(query_get_unlocks)
-			return
-		if(query_get_unlocks.NextRow())
-			unlocked_jobs = query_get_unlocks.item[1]
-			unlocked_species = query_get_unlocks.item[2]
-
-		qdel(query_get_unlocks)
 
 		// Pack it into a dat
 		var/dat = {"
 		<ul>
-		<li>Total Karma: [total_karma]</li>
-		<li>Spent Karma: [spent_karma]</li>
-		<li>Available Karma: [total_karma - spent_karma]</li>
-		<li>Unlocked Jobs: [unlocked_jobs]</li>
-		<li>Unlocked Species: [unlocked_species]</li>
+		<li>Total Karma: [C.karmaholder.karma_earned]</li>
+		<li>Spent Karma: [C.karmaholder.karma_spent]</li>
+		<li>Available Karma: [C.karmaholder.karma_earned - C.karmaholder.karma_spent]</li>
+		<li>Unlocked Jobs: [C.karmaholder.unlocked_jobs.Join(", ")]</li>
+		<li>Unlocked Species: [C.karmaholder.unlocked_species.Join(", ")]</li>
 		</ul>
 		"}
 
-		var/datum/browser/popup = new(usr, "view_karma", "Karma stats for [target_ckey]", 600, 300)
+		var/datum/browser/popup = new(usr, "view_karma", "Karma stats for [C.ckey]", 600, 300)
 		popup.set_content(dat)
 		popup.open(FALSE)
 	else if(href_list["who_advanced"])
