@@ -207,9 +207,10 @@
 				stat("Chemical Storage", "[mind.changeling.chem_charges]/[mind.changeling.chem_storage]")
 				stat("Absorbed DNA", mind.changeling.absorbedcount)
 
-			if(mind.vampire)
-				stat("Total Blood", "[mind.vampire.bloodtotal]")
-				stat("Usable Blood", "[mind.vampire.bloodusable]")
+			var/datum/antagonist/vampire/V = mind.has_antag_datum(/datum/antagonist/vampire)
+			if(V)
+				stat("Total Blood", "[V.bloodtotal]")
+				stat("Usable Blood", "[V.bloodusable]")
 
 /mob/living/carbon/human/ex_act(severity)
 	if(status_flags & GODMODE)
@@ -395,7 +396,7 @@
 				dat += "<font color=grey>Right (Empty)</font>"
 			dat += "</A></td></tr>"
 			dat += "<tr><td>&nbsp;&#8627;<B>ID:</B></td><td><A href='?src=[UID()];item=[slot_wear_id]'>[(wear_id && !(wear_id.flags&ABSTRACT)) ? html_encode(wear_id) : "<font color=grey>Empty</font>"]</A></td></tr>"
-			dat += "<tr><td>&nbsp;&#8627;<B>PDA:</B></td><td><A href='?src=[UID()];item=[slot_wear_pda]'>[(wear_pda && !(wear_pda.flags&ABSTRACT)) ? html_encode(wear_pda) : "<font color=grey>Empty</font>"]</A></td></tr>"
+			dat += "<tr><td>&nbsp;&#8627;<B>PDA:</B></td><td><A href='?src=[UID()];item=[slot_wear_pda]'>[(wear_pda && !(wear_pda.flags&ABSTRACT)) ? "Full" : "<font color=grey>Empty</font>"]</A></td></tr>"
 
 			if(istype(w_uniform, /obj/item/clothing/under))
 				var/obj/item/clothing/under/U = w_uniform
