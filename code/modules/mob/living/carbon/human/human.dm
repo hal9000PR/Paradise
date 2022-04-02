@@ -170,6 +170,11 @@
 /mob/living/carbon/human/stok/Initialize(mapload)
 	. = ..(mapload, /datum/species/monkey/unathi)
 
+/mob/living/carbon/human/moth/Initialize(mapload)
+	. = ..(mapload, /datum/species/moth)
+	if(!body_accessory)
+		change_body_accessory("Plain Wings")
+
 /mob/living/carbon/human/Stat()
 	..()
 	statpanel("Status")
@@ -1256,6 +1261,8 @@
 
 	tail = dna.species.tail
 
+	wing = dna.species.wing
+
 	maxHealth = dna.species.total_health
 
 	if(dna.species.language)
@@ -1353,8 +1360,10 @@
 		dna.species.create_organs(src)
 
 	for(var/obj/item/thing in kept_items)
-		equip_to_slot_if_possible(thing, kept_items[thing])
+		var/equipped = equip_to_slot_if_possible(thing, kept_items[thing])
 		thing.flags = item_flags[thing] // Reset the flags to the origional ones
+		if(!equipped)
+			thing.dropped() // Ensures items know they are dropped. Using their original flags
 
 	//Handle default hair/head accessories for created mobs.
 	var/obj/item/organ/external/head/H = get_organ("head")
@@ -1387,7 +1396,10 @@
 
 	m_styles = DEFAULT_MARKING_STYLES //Wipes out markings, setting them all to "None".
 	m_colours = DEFAULT_MARKING_COLOURS //Defaults colour to #00000 for all markings.
-	body_accessory = null
+	if(dna.species.bodyflags & HAS_BODY_ACCESSORY)
+		body_accessory = GLOB.body_accessory_by_name[dna.species.default_bodyacc]
+	else
+		body_accessory = null
 
 	dna.real_name = real_name
 
@@ -1946,6 +1958,11 @@ Eyes need to have significantly high darksight to shine unless the mob has the X
 
 /mob/living/carbon/human/proc/get_perceived_trauma()
 	return min(health, maxHealth - getStaminaLoss())
+
+/mob/living/carbon/human/WakeUp(updating = TRUE)
+	if(dna.species.spec_WakeUp(src))
+		return
+	..()
 
 /**
   * Helper to get the mobs runechat colour span
