@@ -240,6 +240,48 @@
                                0.4,0.6,0.0,\
                                0.2,0.2,0.6)
 
+#define MATRIX_RED list(1,     0.2, 0.19, 0, \
+						-0.2,  0.2, 0.19, 0, \
+						-0.19, 0.2, 0.19, 0, \
+						0,     0,   0,    1, \
+						0.7,   0.2, 0.2,  1,)
+
+#define MATRIX_R list(1,   0.2, 0.2,\
+					 -0.4, 0.2, 0.2,\
+					  0.2, 0.2, 0.2,)
+
+#define MATRIX_FUCK list(1,    0.2, 0.1, 0, \
+						-0.2,  0.2, 0.1, 0, \
+						-0.1,  0.2, 0.1, 0, \
+						 0,    0,   0,   1, \
+						)
+
+#define MATRIX_GOD_IS_DEAD list(1.45, 0, 0, 0, \
+								0, 0.35, 0, 0, \
+								-0.8, -0.8, 0.35, -0.8, \
+								0, 0, 0, 1)
+
+#define MATRIX_GOD_IS_DEAD_FUCK list(0.9, 0.4, 0.4, 0, \
+								-0.3, 0.4, 0.4, 0, \
+								0.4, 0.4, 0.4, 0, \
+								0.05, 0.05, 0.05, 1.2)
+
+#define MATRIX_I_AM_STARTING_TO_LOSE_IT list(1, 0.2, 0.2, 0.1, \
+											-0.2, 0.2, 0.2, 0, \
+											-0.2, 0.2, 0.2, 0, \
+											0.1, 0, 0, 1)
+
+#define MATRIX_IDENTITY list(1.1, 0, 0, 0, \
+							 0, 1, 0, 0, \
+							 0, 0, 1, 0, \
+							 0, 0, 0, 1)
+
+#define MATRIX_FINAL list(1.1,    0,    0,     0.3, \
+						  0,      0,    0,     0, \
+						  -0.65, -0.65, 0.35, -0.45, \
+						  0,     -0.45, -0.45, 1.05)
+
+
 /*
 	Used for wire name appearances. Replaces the color name on the left with the one on the right.
 	The color on the left is the one used as the actual color of the wire, but it doesn't look good when written.

@@ -71,3 +71,57 @@
 		var/mob/living/L = user
 		L.apply_status_effect(STATUS_EFFECT_CHARGING)
 		L.throw_at(target, targeting.range, 1, L, FALSE, callback = CALLBACK(L, /mob/living/.proc/remove_status_effect, STATUS_EFFECT_CHARGING))
+
+/mob/living/proc/zoom_in(factor = 2) //this breaks parallax cos fuck you
+	if(hud_used)
+		var/atom/movable/plane_master_controller/pm_controller = hud_used.plane_master_controllers[PLANE_MASTERS_GAME]
+		for(var/key in pm_controller.controlled_planes)
+			animate(pm_controller.controlled_planes[key], transform = (matrix() * factor), time = 1 SECONDS, easing = QUAD_EASING)
+
+/mob/living/proc/a()
+	client.colour_transition(MATRIX_GOD_IS_DEAD, 1 SECONDS)
+
+/mob/living/proc/b()
+	client.colour_transition(MATRIX_I_AM_STARTING_TO_LOSE_IT, 1 SECONDS)
+
+/mob/living/proc/c()
+	client.colour_transition(MATRIX_GOD_IS_DEAD_FUCK, 1 SECONDS)
+	ui_interact(src)
+
+/mob/living/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.always_state)
+	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+	if(!ui)
+		ui = new(user, src, ui_key, "Testing", "TESTING", 1500, 2000, master_ui, state)
+		ui.set_autoupdate(FALSE)
+		ui.open()
+
+/mob/living/ui_data(mob/user)
+	var/list/data = list()
+	var/list/data_2 = list()
+	for(var/i in 1 to 20)
+		data_2 += list(list("num" = i, "value" = client.color[i]))
+	data["matrix"] = data_2
+
+	return data
+
+/mob/living/ui_act(action, list/params)
+	if(..())
+		return
+
+	. = TRUE
+	switch(action)
+		if("volume")
+			var/channel = text2num(params["channel"])
+			var/value = text2num(params["volume"])
+			var/list/temp1 = client.color
+			var/list/temp2 = temp1.Copy()
+			temp2[channel] = value
+			client.color = temp2
+		else
+			return FALSE
+
+
+
+
+
+
