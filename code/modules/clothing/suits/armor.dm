@@ -155,21 +155,55 @@
 	desc = "A navy-blue armored jacket with blue shoulder designations and '/Warden/' stitched into one of the chest pockets."
 	icon_state = "warden_jacket_alt"
 
+//Captain
 /obj/item/clothing/suit/armor/vest/capcarapace
 	name = "captain's carapace"
 	desc = "An armored vest reinforced with ceramic plates and pauldrons to provide additional protection whilst still offering maximum mobility and flexibility. Issued only to the station's finest, although it does chafe your nipples."
-	icon_state = "capcarapace"
+	icon_state = "captain_carapace"
 	item_state = "armor"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
 	armor = list(MELEE = 50, BULLET = 35, LASER = 50, ENERGY = 5, BOMB = 15, BIO = 0, RAD = 0, FIRE = INFINITY, ACID = 450)
 	dog_fashion = null
 	resistance_flags = FIRE_PROOF
+	allowed = list(/obj/item/disk, /obj/item/stamp, /obj/item/reagent_containers/food/drinks/flask, /obj/item/melee, /obj/item/storage/lockbox/medal, /obj/item/flash, /obj/item/storage/box/matches, /obj/item/lighter, /obj/item/clothing/mask/cigarette, /obj/item/storage/fancy/cigarettes, /obj/item/tank/internals/emergency_oxygen)
 
-/obj/item/clothing/suit/armor/vest/capcarapace/alt
-	name = "captain's parade jacket"
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/suit.dmi',
+		"Drask" = 'icons/mob/clothing/species/drask/suit.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/suit.dmi',
+		"Kidan" = 'icons/mob/clothing/species/kidan/suit.dmi',
+	)
+
+/obj/item/clothing/suit/armor/vest/capcarapace/jacket
+	name = "captain's jacket"
+	desc = "A less formal jacket for everyday captain use."
+	icon_state = "captain_jacket"
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
+	armor = list(MELEE = 40, BULLET = 20, LASER = 25, ENERGY = 5, BOMB = 15, BIO = 0, RAD = 0, FIRE = INFINITY, ACID = 450)
+	flags_inv = HIDEJUMPSUIT
+
+/obj/item/clothing/suit/armor/vest/capcarapace/jacket/tunic
+	name = "captain's tunic"
+	desc = "Worn by a Captain to show their class."
+	icon_state = "captain_tunic"
+
+/obj/item/clothing/suit/armor/vest/capcarapace/coat
+	name = "captain's formal coat"
 	desc = "For when an armored vest isn't fashionable enough."
-	icon_state = "capformal"
-	item_state = "capspacesuit"
+	icon_state = "captain_formal"
+	armor = list(MELEE = 35, BULLET = 15, LASER = 20, ENERGY = 5, BOMB = 10, BIO = 0, RAD = 0, FIRE = INFINITY, ACID = 450)
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
+
+/obj/item/clothing/suit/armor/vest/capcarapace/coat/white
+	name = "captain's long white tunic"
+	desc = "An old style captain tunic. Makes you look and feel like you're wearing a cardboard box with arm holes cut in it but looks like it would be great for a wedding... or a funeral."
+	icon_state = "captain_white"
+
+	sprite_sheets = list( //Drask look fine in the regular human version
+		"Vox" = 'icons/mob/clothing/species/vox/suit.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/suit.dmi',
+		"Kidan" = 'icons/mob/clothing/species/kidan/suit.dmi',
+	)
 
 /obj/item/clothing/suit/armor/riot
 	name = "riot suit"
@@ -228,9 +262,14 @@
 	icon_state = "bulletproof"
 	item_state = "armor"
 	blood_overlay_type = "armor"
-	armor = list(MELEE = 10, BULLET = 75, LASER = 5, ENERGY = 5, BOMB = 35, BIO = 0, RAD = 0, FIRE = 50, ACID = 50)
-	strip_delay = 70
-	put_on_delay = 50
+	body_parts_covered = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
+	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
+	heat_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
+	armor = list(MELEE = 10, BULLET = 50, LASER = 5, ENERGY = 5, BOMB = 35, BIO = 0, RAD = 0, FIRE = 50, ACID = 50)
+	strip_delay = 8 SECONDS
+	put_on_delay = 6 SECONDS
+	sprite_sheets = list("Vox" = 'icons/mob/clothing/species/vox/suit.dmi',
+						 "Grey" = 'icons/mob/clothing/species/grey/suit.dmi')
 
 /obj/item/clothing/suit/armor/laserproof
 	name = "ablative armor vest"
@@ -239,7 +278,6 @@
 	item_state = "armor_reflec"
 	blood_overlay_type = "armor"
 	armor = list(MELEE = 5, BULLET = 5, LASER = 75, ENERGY = 50, BOMB = 0, BIO = 0, RAD = 0, FIRE = INFINITY, ACID = INFINITY)
-	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 	var/hit_reflect_chance = 40
 
 /obj/item/clothing/suit/armor/laserproof/IsReflect()
@@ -320,11 +358,12 @@
 
 /obj/item/clothing/suit/armor/reactive/proc/use_power()
 	if(in_grace_period)
-		return
-	else
-		in_grace_period = TRUE
-		cell.use(energy_cost) // 20 blocks for most armors, 12 blocks for the "stronger" armors
-		addtimer(VARSET_CALLBACK(src, in_grace_period, FALSE), 1 SECONDS)
+		return TRUE
+	if(!cell.use(energy_cost)) //No working if cells are dry
+		return FALSE
+	in_grace_period = TRUE
+	addtimer(VARSET_CALLBACK(src, in_grace_period, FALSE), 1 SECONDS)
+	return TRUE
 
 /obj/item/clothing/suit/armor/reactive/get_cell()
 	return cell
@@ -369,11 +408,10 @@
 /obj/item/clothing/suit/armor/reactive/teleport/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
 		return 0
-	if(reaction_check(hitby) && is_teleport_allowed(owner.z))
+	if(reaction_check(hitby) && is_teleport_allowed(owner.z) && use_power())
 		var/mob/living/carbon/human/H = owner
 		if(do_teleport(owner, owner, 6, safe_turf_pick = TRUE)) //Teleport on the same spot with a precision of 6 gets a random tile near the owner.
 			owner.visible_message("<span class='danger'>The reactive teleport system flings [H] clear of [attack_text]!</span>")
-			use_power()
 			return TRUE
 		return FALSE
 	return FALSE
@@ -397,9 +435,8 @@
 /obj/item/clothing/suit/armor/reactive/fire/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
 		return FALSE
-	if(reaction_check(hitby))
+	if(reaction_check(hitby) && use_power())
 		owner.visible_message("<span class='danger'>[src] blocks [attack_text], sending out jets of flame!</span>")
-		use_power()
 		for(var/mob/living/carbon/C in range(6, owner))
 			if(C != owner)
 				C.fire_stacks += 8
@@ -417,14 +454,13 @@
 /obj/item/clothing/suit/armor/reactive/stealth/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
 		return FALSE
-	if(reaction_check(hitby))
+	if(reaction_check(hitby) && use_power())
 		var/mob/living/simple_animal/hostile/illusion/escape/E = new(owner.loc)
 		E.Copy_Parent(owner, 50)
 		E.GiveTarget(owner) //so it starts running right away
 		E.Goto(owner, E.move_to_delay, E.minimum_distance)
 		owner.visible_message("<span class='danger'>[owner] is hit by [attack_text] in the chest!</span>") //We pretend to be hit, since blocking it would stop the message otherwise
 		owner.make_invisible()
-		use_power()
 		addtimer(CALLBACK(owner, /mob/living/.proc/reset_visibility), 4 SECONDS)
 		return TRUE
 
@@ -435,9 +471,8 @@
 /obj/item/clothing/suit/armor/reactive/tesla/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
 		return FALSE
-	if(reaction_check(hitby))
+	if(reaction_check(hitby) && use_power())
 		owner.visible_message("<span class='danger'>[src] blocks [attack_text], sending out arcs of lightning!</span>")
-		use_power()
 		for(var/mob/living/M in view(6, owner))
 			if(M == owner)
 				continue
@@ -462,7 +497,7 @@
 /obj/item/clothing/suit/armor/reactive/repulse/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(!active)
 		return FALSE
-	if(reaction_check(hitby))
+	if(reaction_check(hitby) && use_power())
 		owner.visible_message("<span class='danger'>[src] blocks [attack_text], converting the attack into a wave of force!</span>")
 		use_power()
 		var/list/thrown_atoms = list()
