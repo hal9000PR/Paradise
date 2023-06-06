@@ -123,37 +123,22 @@
 	throw_range = 0
 	throw_speed = 0
 
+/obj/item/melee/arm_blade/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_FORCES_OPEN_DOORS_ITEM, ROUNDSTART_TRAIT)
+
 /obj/item/melee/arm_blade/afterattack(atom/target, mob/user, proximity)
 	if(!proximity)
 		return
 	if(istype(target, /obj/structure/table))
 		var/obj/structure/table/T = target
 		T.deconstruct(FALSE)
+		return
 
-	else if(istype(target, /obj/machinery/computer))
+	if(istype(target, /obj/machinery/computer))
 		var/obj/machinery/computer/C = target
 		C.attack_alien(user) //muh copypasta
 
-	else if(istype(target, /obj/machinery/door/airlock))
-		var/obj/machinery/door/airlock/A = target
-
-		if(!A.requiresID() || A.allowed(user)) //This is to prevent stupid shit like hitting a door with an arm blade, the door opening because you have acces and still getting a "the airlocks motors resist our efforts to force it" message.
-			return
-
-		if(A.locked)
-			to_chat(user, "<span class='notice'>The airlock's bolts prevent it from being forced.</span>")
-			return
-
-		if(A.arePowerSystemsOn())
-			user.visible_message("<span class='warning'>[user] jams [src] into the airlock and starts prying it open!</span>", "<span class='warning'>We start forcing the airlock open.</span>", \
-			"<span class='italics'>You hear a metal screeching sound.</span>")
-			playsound(A, 'sound/machines/airlock_alien_prying.ogg', 150, 1)
-			if(!do_after(user, 100, target = A))
-				return
-
-		//user.say("Heeeeeeeeeerrre's Johnny!")
-		user.visible_message("<span class='warning'>[user] forces the airlock to open with [user.p_their()] [name]!</span>", "<span class='warning'>We force the airlock to open.</span>", "<span class='warning'>You hear a metal screeching sound.</span>")
-		A.open(2)
 
 /***************************************\
 |***********COMBAT TENTACLES*************|
@@ -423,7 +408,7 @@
 	desc = "A huge, bulky mass of pressure and temperature-resistant organic tissue, evolved to facilitate space travel."
 	flags = STOPSPRESSUREDMAGE | NODROP | DROPDEL
 	allowed = list(/obj/item/flashlight, /obj/item/tank/internals)
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 90) //No armor at all
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 0, FIRE = 90, ACID = 90) //No armor at all
 
 /obj/item/clothing/suit/space/changeling/Initialize(mapload)
 	. = ..()
@@ -441,7 +426,7 @@
 	icon_state = "lingspacehelmet"
 	desc = "A covering of pressure and temperature-resistant organic tissue with a glass-like chitin front."
 	flags = BLOCKHAIR | STOPSPRESSUREDMAGE | NODROP | DROPDEL
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 90)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 0, FIRE = 90, ACID = 90)
 
 
 /***************************************\
@@ -468,7 +453,7 @@
 	icon_state = "lingarmor"
 	flags = NODROP | DROPDEL
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
-	armor = list(MELEE = 40, BULLET = 40, LASER = 40, ENERGY = 20, BOMB = 10, BIO = 4, RAD = 0, FIRE = 90, ACID = 90)
+	armor = list(MELEE = 40, BULLET = 40, LASER = 40, ENERGY = 20, BOMB = 10, RAD = 0, FIRE = 90, ACID = 90)
 	var/armor_durability = 600
 	flags_inv = HIDEJUMPSUIT
 	cold_protection = 0
@@ -496,10 +481,14 @@
 		var/obj/item/I = hitby
 		if(istype(I, /obj/item/circular_saw))
 			armor_durability -= 25 // saws used to cut away armor through an interaction, so let's keep them somewhat more effective
-		else if(I.damtype == BURN)
-			armor_durability -= damage * 2
+		else if(istype(I))
+			if(I.damtype == BURN)
+				armor_durability -= damage * 2
+			else
+				armor_durability -= damage
 		else
-			armor_durability -= damage
+			armor_durability--
+
 	if(armor_durability <= 0)
 		visible_message("<span class='warning'>[owner]'s chitinous armor collapses in clumps onto the ground.</span>")
 		new /obj/effect/decal/cleanable/shreds(owner.loc)
@@ -513,5 +502,5 @@
 	desc = "A tough, hard covering of black chitin with transparent chitin in front."
 	icon_state = "lingarmorhelmet"
 	flags = BLOCKHAIR | NODROP | DROPDEL
-	armor = list(MELEE = 40, BULLET = 40, LASER = 40, ENERGY = 20, BOMB = 10, BIO = 4, RAD = 0, FIRE = 90, ACID = 90)
+	armor = list(MELEE = 40, BULLET = 40, LASER = 40, ENERGY = 20, BOMB = 10, RAD = 0, FIRE = 90, ACID = 90)
 	flags_inv = HIDEEARS
