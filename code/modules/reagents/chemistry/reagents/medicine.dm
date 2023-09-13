@@ -359,6 +359,9 @@
 	return ..() | update_flags
 
 /datum/reagent/medicine/omnizine/overdose_process(mob/living/M, severity)
+	if(HAS_TRAIT(M, TRAIT_BADASS))
+		return
+
 	var/list/overdose_info = ..()
 	var/effect = overdose_info[REAGENT_OVERDOSE_EFFECT]
 	var/update_flags = overdose_info[REAGENT_OVERDOSE_FLAGS]
@@ -537,9 +540,6 @@
 	color = "#C8A5DC"
 	metabolization_rate = 0.3
 	overdose_threshold = 35
-	addiction_chance = 1
-	addiction_chance = 10
-	addiction_threshold = 10
 	harmless = FALSE
 	taste_description = "stimulation"
 
@@ -856,7 +856,7 @@
 	if(volume < 20)
 		if(prob(10))
 			to_chat(H, "<span class='warning>You cough up some congealed blood.</span>")
-			H.vomit(blood = TRUE, stun = FALSE) //mostly visual
+			H.vomit(blood = TRUE, should_confuse = FALSE) //mostly visual
 		else if(prob(10))
 			var/overdose_message = pick("Your vision is tinted red for a moment.", "You can hear your heart beating.")
 			to_chat(H, "<span class='warning'>[overdose_message]</span>")
@@ -864,7 +864,7 @@
 		if(prob(10))
 			to_chat(H, "<span class='danger'>You choke on congealed blood!</span>")
 			H.AdjustLoseBreath(2 SECONDS)
-			H.vomit(blood = TRUE, stun = FALSE)
+			H.vomit(blood = TRUE, should_confuse = FALSE)
 		else if(prob(10))
 			var/overdose_message = pick("You're seeing red!", "Your heartbeat thunders in your ears!", "Your veins writhe under your skin!")
 			to_chat(H, "<span class='danger'>[overdose_message]</span>")
