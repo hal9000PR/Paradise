@@ -14,11 +14,13 @@
 		/obj/item/kitchen/knife = 90,
 		/obj/item/kitchen/knife/shiv = 70,
 		/obj/item/shard = 60,
+		TOOL_WIRECUTTER = 35,
 		/obj/item/scissors = 12,
-		/obj/item/butcher_chainsaw = 1,
 		/obj/item/claymore = 6,
 		/obj/item/melee/energy = 6,
 		/obj/item/pen/edagger = 6,
+		/obj/item/chainsaw = 1,
+		/obj/item/butcher_chainsaw = 1
 	)
 
 	time = 1.6 SECONDS
@@ -26,8 +28,8 @@
 /datum/surgery_step/generic/cut_open/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message(
-		"[user] starts the incision on [target]'s [affected.name] with \the [tool].",
-		"You start the incision on [target]'s [affected.name] with \the [tool].",
+		"[user] starts the incision on [target]'s [affected.name] with [tool].",
+		"You start the incision on [target]'s [affected.name] with [tool].",
 		chat_message_type = MESSAGE_TYPE_COMBAT
 	)
 	affected.custom_pain("You feel a horrible pain as if from a sharp knife in your [affected.name]!")
@@ -36,8 +38,8 @@
 /datum/surgery_step/generic/cut_open/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message(
-		"<span class='notice'> [user] has made an incision on [target]'s [affected.name] with \the [tool].</span>",
-		"<span class='notice'> You have made an incision on [target]'s [affected.name] with \the [tool].</span>",
+		"<span class='notice'>[user] has made an incision on [target]'s [affected.name] with [tool].</span>",
+		"<span class='notice'>You have made an incision on [target]'s [affected.name] with [tool].</span>",
 		chat_message_type = MESSAGE_TYPE_COMBAT
 	)
 	affected.open = ORGAN_ORGANIC_OPEN
@@ -47,8 +49,8 @@
 /datum/surgery_step/generic/cut_open/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message(
-		"<span class='warning'> [user]'s hand slips, slicing open [target]'s [affected.name] in a wrong spot with \the [tool]!</span>",
-		"<span class='warning'> Your hand slips, slicing open [target]'s [affected.name] in a wrong spot with \the [tool]!</span>",
+		"<span class='warning'>[user]'s hand slips, slicing open [target]'s [affected.name] in a wrong spot with [tool]!</span>",
+		"<span class='warning'>Your hand slips, slicing open [target]'s [affected.name] in a wrong spot with [tool]!</span>",
 		chat_message_type = MESSAGE_TYPE_COMBAT
 	)
 	affected.receive_damage(10)
@@ -91,8 +93,8 @@
 /datum/surgery_step/generic/clamp_bleeders/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message(
-		"<span class='warning'> [user]'s hand slips, tearing blood vessels and causing massive bleeding in [target]'s [affected.name] with \the [tool]!</span>",
-		"<span class='warning'> Your hand slips, tearing blood vessels and causing massive bleeding in [target]'s [affected.name] with \the [tool]!</span>",
+		"<span class='warning'>[user]'s hand slips, tearing blood vessels and causing massive bleeding in [target]'s [affected.name] with \the [tool]!</span>",
+		"<span class='warning'>Your hand slips, tearing blood vessels and causing massive bleeding in [target]'s [affected.name] with \the [tool]!</span>",
 		chat_message_type = MESSAGE_TYPE_COMBAT
 	)
 	affected.receive_damage(10)
@@ -162,7 +164,8 @@
 		TOOL_CAUTERY = 100,
 		/obj/item/clothing/mask/cigarette = 90,
 		/obj/item/lighter = 60,
-		TOOL_WELDER = 30
+		TOOL_WELDER = 30,
+		/obj/item/flamethrower = 1 // You make do with what ya got...
 	)
 
 	time = 2.4 SECONDS
@@ -185,7 +188,7 @@
 		chat_message_type = MESSAGE_TYPE_COMBAT
 	)
 	affected.open = ORGAN_CLOSED
-	affected.germ_level = 0
+	affected.germ_level = max(affected.germ_level - 50, 0)
 	return SURGERY_STEP_CONTINUE
 
 /datum/surgery_step/generic/cauterize/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
@@ -251,11 +254,14 @@
 
 /datum/surgery_step/generic/amputate
 	name = "amputate limb"
-
 	allowed_tools = list(
 		TOOL_SAW = 100,
+		/obj/item/chainsaw = 100,	// It's pretty good at doing this outside of surgery tbh...
+		/obj/item/butcher_chainsaw = 100,
 		/obj/item/hatchet = 90,
-		/obj/item/melee/arm_blade = 75
+		/obj/item/melee/arm_blade = 75,
+		/obj/item/claymore = 75,
+		/obj/item/melee/energy = 75
 	)
 
 	time = 10 SECONDS

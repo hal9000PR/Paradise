@@ -91,6 +91,14 @@
 	/// Turrets use this list to see if individual power/lethal settings are allowed. Contains the /obj/machinery/turretid for this area
 	var/list/turret_controls = list()
 
+	/// The flags applied to request consoles spawned in this area.
+	/// See [RC_ASSIST], [RC_SUPPLY], [RC_INFO].
+	var/request_console_flags = 0
+	/// The name for any spawned request consoles. Defaults to the area name.
+	var/request_console_name
+	/// Whether request consoles in this area can send announcements.
+	var/request_console_announces = FALSE
+
 	/*
 	Lighting Vars
 	*/
@@ -530,6 +538,8 @@
 		INVOKE_ASYNC(temp_airlock, TYPE_PROC_REF(/obj/machinery/door/airlock, prison_open))
 	for(var/obj/machinery/door/window/temp_windoor in src)
 		INVOKE_ASYNC(temp_windoor, TYPE_PROC_REF(/obj/machinery/door, open))
+	for(var/obj/machinery/door/poddoor/temp_poddoor in src)
+		INVOKE_ASYNC(temp_poddoor, TYPE_PROC_REF(/obj/machinery/door, open))
 
 /area/AllowDrop()
 	CRASH("Bad op: area/AllowDrop() called")

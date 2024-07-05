@@ -118,7 +118,7 @@
 /datum/martial_art/proc/basic_hit(mob/living/carbon/human/A, mob/living/carbon/human/D)
 
 	var/damage = rand(A.dna.species.punchdamagelow, A.dna.species.punchdamagehigh)
-	var/datum/unarmed_attack/attack = A.dna.species.unarmed
+	var/datum/unarmed_attack/attack = A.get_unarmed_attack()
 
 	var/atk_verb = "[pick(attack.attack_verb)]"
 	if(IS_HORIZONTAL(D))
@@ -239,7 +239,7 @@
 
 /datum/action/defensive_stance
 	name = "Defensive Stance - Ready yourself to be attacked, allowing you to parry incoming melee hits."
-	button_icon_state = "block"
+	button_overlay_icon_state = "block"
 
 /datum/action/defensive_stance/Trigger(left_click)
 	var/mob/living/carbon/human/H = owner
@@ -258,6 +258,7 @@
 
 /obj/item/storage/belt/champion/wrestling
 	name = "Wrestling Belt"
+	layer_over_suit = TRUE
 	var/datum/martial_art/wrestling/style
 
 /obj/item/storage/belt/champion/wrestling/Initialize()

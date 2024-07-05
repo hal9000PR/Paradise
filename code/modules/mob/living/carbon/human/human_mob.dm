@@ -165,6 +165,9 @@
 /mob/living/carbon/human/stok/Initialize(mapload)
 	. = ..(mapload, /datum/species/monkey/unathi)
 
+/mob/living/carbon/human/nian_worme/Initialize(mapload)
+	. = ..(mapload, /datum/species/monkey/nian_worme)
+
 /mob/living/carbon/human/moth/Initialize(mapload)
 	. = ..(mapload, /datum/species/moth)
 	if(!body_accessory)
@@ -823,6 +826,9 @@
 	if(HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))
 		. = FALSE
 
+	if(wear_suit && HAS_TRAIT(wear_suit, TRAIT_RSG_IMMUNE))
+		return FALSE
+
 	var/obj/item/organ/external/affecting = get_organ(target_zone)
 	var/fail_msg
 	if(!affecting)
@@ -831,8 +837,10 @@
 	else if(affecting.is_robotic())
 		. = FALSE
 		fail_msg = "That limb is robotic."
-	if(wear_suit && !HAS_TRAIT(wear_suit, TRAIT_PUNCTURE_IMMUNE) && piercing)
+
+	if(piercing)
 		return TRUE
+
 	if(target_zone == "head")
 		if((head?.flags & THICKMATERIAL) && !penetrate_thick)
 			. = FALSE
@@ -983,20 +991,11 @@
 		affected.custom_pain("You feel a stabbing pain in your chest!")
 		L.linked_organ.damage = L.linked_organ.min_bruised_damage
 
-/mob/living/carbon/human/cuff_resist(obj/item/I)
+/mob/living/carbon/human/resist_restraints(attempt_breaking)
 	if(HAS_TRAIT(src, TRAIT_HULK))
 		say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-		if(..(I, cuff_break = 1))
-			unEquip(I)
-	else
-		if(..())
-			unEquip(I)
-
-/mob/living/carbon/human/resist_restraints()
-	if(wear_suit && wear_suit.breakouttime)
-		cuff_resist(wear_suit)
-	else
-		..()
+		attempt_breaking = TRUE
+	return ..()
 
 /mob/living/carbon/human/generate_name()
 	name = dna.species.get_random_name(gender)
@@ -1005,16 +1004,16 @@
 		dna.real_name = name
 	return name
 
-/mob/living/carbon/human/proc/change_dna(datum/dna/new_dna, include_species_change = FALSE, keep_flavor_text = FALSE)
+/mob/living/carbon/human/proc/change_dna(datum/dna/new_dna, include_species_change = FALSE)
 	if(include_species_change)
 		set_species(new_dna.species.type, retain_damage = TRUE, transformation = TRUE, keep_missing_bodyparts = TRUE)
 	dna = new_dna.Clone()
 	if(include_species_change) //We have to call this after new_dna.Clone() so that species actions don't get overwritten
 		dna.species.on_species_gain(src)
 	real_name = new_dna.real_name
+	if(dna.flavor_text)
+		flavor_text = dna.flavor_text
 	domutcheck(src, MUTCHK_FORCED) //Ensures species that get powers by the species proc handle_dna keep them
-	if(!keep_flavor_text)
-		flavor_text = ""
 	dna.UpdateSE()
 	dna.UpdateUI()
 	sync_organ_dna(TRUE)
@@ -1265,6 +1264,9 @@
 	if(default_language)
 		return default_language
 
+	if(HAS_TRAIT(src, TRAIT_I_WANT_BRAINS)) // you're not allowed to speak common
+		return GLOB.all_languages["Zombie"]
+
 	if(!dna.species)
 		return null
 	return dna.species.default_language ? GLOB.all_languages[dna.species.default_language] : null
@@ -1455,7 +1457,7 @@ Eyes need to have significantly high darksight to shine unless the mob has the X
 	rad_act(current_size * 3)
 
 /mob/living/carbon/human/narsie_act()
-	if(iswizard(src) && IS_CULTIST(src)) //Wizard cultists are immune to narsie because it would prematurely end the wiz round that's about to end by the automated shuttle call anyway
+	if(iswizard(src) || IS_CULTIST(src)) // Wizards are immune to the magic. Cultists also don't get transformed.
 		return
 	..()
 
@@ -1967,3 +1969,84 @@ Eyes need to have significantly high darksight to shine unless the mob has the X
 	set category = "IC"
 
 	update_flavor_text()
+
+/mob/living/carbon/human/proc/expert_chef_knowledge()
+	if(!HAS_TRAIT(mind, TRAIT_KNOWS_COOKING_RECIPES))
+		return
+
+	var/list/possible_cookware = view(1, src)
+
+	for(var/obj/item/storage/storage in possible_cookware)
+		possible_cookware += storage.contents
+		possible_cookware -= storage
+
+	shuffle_inplace(possible_cookware)
+
+	var/list/available_ingredients = list()
+	var/list/available_reagents = list()
+	for(var/obj/item/item in possible_cookware)
+		if(item.container_type == OPENCONTAINER && item.reagents)
+			for(var/datum/reagent/reagent in item.reagents.reagent_list)
+				if(!available_reagents[reagent.id])
+					available_reagents[reagent.id] = 0
+				available_reagents[reagent.id] += reagent.volume
+		else
+			if(!available_ingredients[item.type])
+				available_ingredients[item.type] = 0
+			available_ingredients[item.type] += 1
+
+	var/list/possible_recipes = list()
+	for(var/datum/recipe/recipe_type as anything in subtypesof(/datum/recipe))
+		if(!recipe_type.result)
+			continue
+		var/datum/recipe/recipe = new recipe_type()
+		if(recipe.check_reagents_assoc_list(available_reagents) != INGREDIENT_CHECK_FAILURE && recipe.check_items_assoc_list(available_ingredients) != INGREDIENT_CHECK_FAILURE)
+			if(istype(recipe, /datum/recipe/microwave))
+				possible_recipes[recipe] = RECIPE_MICROWAVE
+			else if(istype(recipe, /datum/recipe/oven))
+				possible_recipes[recipe] = RECIPE_OVEN
+			else if(istype(recipe, /datum/recipe/grill))
+				possible_recipes[recipe] = RECIPE_GRILL
+			else if(istype(recipe, /datum/recipe/candy))
+				possible_recipes[recipe] = RECIPE_CANDY
+			else
+				possible_recipes[recipe] = "something? This shouldn't happen, make a bug report"
+
+	if(!length(possible_recipes))
+		to_chat(src, "<span class='warning'>You can't think of anything to cook with the items around you.</span>")
+		return
+
+	var/list/message = list("You draw upon your extensive experience in space food, contemplating what you could make with the items around you...")
+	for(var/datum/recipe/recipe in possible_recipes)
+		var/list/assoc = type_list_to_counted_assoc_list(recipe.items)
+		var/list/ingredient_list = list()
+		for(var/obj/item/path_key as anything in assoc)
+			ingredient_list += "[assoc[path_key]] [initial(path_key.name)]\s"
+
+		var/list/required_reagents = list()
+		for(var/reagent_id in recipe.reagents)
+			var/datum/reagent/temp = GLOB.chemical_reagents_list[reagent_id]
+			if(temp)
+				required_reagents += "[recipe.reagents[reagent_id]] unit\s of [temp.name]"
+
+		var/obj/item/result = recipe.result
+		message += "\tI could make [result.gender == PLURAL ? "some" : "a"] [bicon(result)] <b>[result.name]</b> by using \a [possible_recipes[recipe]] with [english_list(ingredient_list)][length(required_reagents) ? ", along with [english_list(required_reagents)]" : ""]."
+		qdel(recipe)
+	to_chat(src, chat_box_examine(message.Join("<br>")))
+
+/mob/living/carbon/human/proc/get_unarmed_attack()
+	var/datum/antagonist/zombie/zombie = mind?.has_antag_datum(/datum/antagonist/zombie)
+	if(!istype(zombie))
+		return dna.species.unarmed
+	return zombie.claw_attack
+
+/mob/living/carbon/human/proc/get_dna_scrambled()
+	scramble(1, src, 100)
+	real_name = random_name(gender, dna.species.name) // Give them a name that makes sense for their species.
+	sync_organ_dna(assimilate = 1)
+	update_body()
+	reset_hair() // No more winding up with hairstyles you're not supposed to have, and blowing your cover.
+	reset_markings() // ...Or markings.
+	dna.ResetUIFrom(src)
+	flavor_text = ""
+
