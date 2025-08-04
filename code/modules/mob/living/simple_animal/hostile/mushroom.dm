@@ -5,11 +5,9 @@
 	icon_living = "mushroom_color"
 	icon_dead = "mushroom_dead"
 	mob_biotypes = MOB_ORGANIC | MOB_PLANT
-	speak_chance = 0
-	turns_per_move = 1
 	maxHealth = 10
 	health = 10
-	butcher_results = list(/obj/item/food/snacks/hugemushroomslice = 1)
+	butcher_results = list(/obj/item/food/hugemushroomslice = 1)
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "whacks"
@@ -23,8 +21,6 @@
 	faction = list("mushroom", "jungle")
 	environment_smash = 0
 	stat_attack = DEAD
-	mouse_opacity = MOUSE_OPACITY_ICON
-	speed = 1
 	ventcrawler = VENTCRAWLER_ALWAYS
 	robust_searching = TRUE
 	speak_emote = list("squeaks")
@@ -39,9 +35,9 @@
 /mob/living/simple_animal/hostile/mushroom/examine(mob/user)
 	. = ..()
 	if(health >= maxHealth)
-		. += "<span class='info'>It looks healthy.</span>"
+		. += "<span class='notice'>It looks healthy.</span>"
 	else
-		. += "<span class='info'>It looks like it's been roughed up.</span>"
+		. += "<span class='notice'>It looks like it's been roughed up.</span>"
 
 /mob/living/simple_animal/hostile/mushroom/Life(seconds, times_fired)
 	..()
@@ -151,17 +147,21 @@
 		src.visible_message("<span class='notice'>[src] was bruised!</span>")
 		bruised = 1
 
-/mob/living/simple_animal/hostile/mushroom/attackby(obj/item/I as obj, mob/user as mob, params)
-	if(istype(I, /obj/item/food/snacks/grown/mushroom))
+/mob/living/simple_animal/hostile/mushroom/item_interaction(mob/living/user, obj/item/I, list/modifiers)
+	if(istype(I, /obj/item/food/grown/mushroom))
 		if(stat == DEAD && !recovery_cooldown)
 			Recover()
 			qdel(I)
 		else
 			to_chat(user, "<span class='notice'>[src] won't eat it!</span>")
-		return
-	if(I.force)
+		return ITEM_INTERACT_COMPLETE
+
+/mob/living/simple_animal/hostile/mushroom/attacked_by(obj/item/attacker, mob/living/user)
+	if(..())
+		return FINISH_ATTACK
+
+	if(attacker.force)
 		Bruise()
-	..()
 
 /mob/living/simple_animal/hostile/mushroom/attack_hand(mob/living/carbon/human/M as mob)
 	..()
@@ -182,7 +182,7 @@
 /mob/living/simple_animal/hostile/mushroom/harvest()
 	var/counter
 	for(counter=0, counter<=powerlevel, counter++)
-		var/obj/item/food/snacks/hugemushroomslice/S = new (src.loc)
+		var/obj/item/food/hugemushroomslice/S = new (src.loc)
 		S.reagents.add_reagent("psilocybin", powerlevel)
 		S.reagents.add_reagent("omnizine", powerlevel)
 		S.reagents.add_reagent("synaptizine", powerlevel)

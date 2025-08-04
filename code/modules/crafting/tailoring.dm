@@ -305,6 +305,24 @@
 	reqs = list(/obj/item/clothing/glasses/meson/sunglasses = 1)
 	category = CAT_CLOTHING
 
+/datum/crafting_recipe/hudsyndiesun
+	name = "Suspicious sunglasses"
+	result = list(/obj/item/clothing/glasses/syndie_sun)
+	time = 1 SECONDS
+	tools = list(TOOL_SCREWDRIVER)
+	reqs = list(/obj/item/clothing/glasses/sunglasses = 1,
+				/obj/item/clothing/glasses/syndie = 1)
+	category = CAT_CLOTHING
+
+/datum/crafting_recipe/hudsyndiesunremoval
+	name = "Suspicious glasses flash protection removal"
+	result = list(/obj/item/clothing/glasses/sunglasses = 1,
+				/obj/item/clothing/glasses/syndie = 1,)
+	time = 1 SECONDS
+	tools = list(TOOL_SCREWDRIVER)
+	reqs = list(/obj/item/clothing/glasses/syndie_sun = 1)
+	category = CAT_CLOTHING
+
 /datum/crafting_recipe/beergoggles
 	name = "Sunscanners"
 	result = list(/obj/item/clothing/glasses/sunglasses/reagent)
@@ -593,7 +611,7 @@
 
 /datum/crafting_recipe/lizardboots
 	name = "Lizard Skin Boots"
-	result = list(/obj/effect/spawner/lootdrop/lizardboots)
+	result = list(/obj/effect/spawner/random/lizardboots)
 	time = 6 SECONDS
 	reqs = list(/obj/item/stack/sheet/animalhide/lizard = 1, /obj/item/stack/sheet/leather = 1)
 	category = CAT_CLOTHING
@@ -631,8 +649,8 @@
 	name = "Flower Crown"
 	result = list(/obj/item/clothing/head/flower_crown)
 	time = 2 SECONDS
-	reqs = list(/obj/item/food/snacks/grown/poppy = 3,
-				/obj/item/food/snacks/grown/lily = 3,
+	reqs = list(/obj/item/food/grown/poppy = 3,
+				/obj/item/food/grown/lily = 3,
 				/obj/item/grown/sunflower = 3)
 	category = CAT_CLOTHING
 
@@ -647,21 +665,21 @@
 	name = "Poppy Crown"
 	result = list(/obj/item/clothing/head/poppy_crown)
 	time = 2 SECONDS
-	reqs = list(/obj/item/food/snacks/grown/poppy = 5)
+	reqs = list(/obj/item/food/grown/poppy = 5)
 	category = CAT_CLOTHING
 
 /datum/crafting_recipe/lily_crown
 	name = "Lily Crown"
 	result = list(/obj/item/clothing/head/lily_crown)
 	time = 2 SECONDS
-	reqs = list(/obj/item/food/snacks/grown/lily = 5)
+	reqs = list(/obj/item/food/grown/lily = 5)
 	category = CAT_CLOTHING
 
 /datum/crafting_recipe/geranium_crown
 	name = "Geranium Crown"
 	result = list(/obj/item/clothing/head/geranium_crown)
 	time = 2 SECONDS
-	reqs = list(/obj/item/food/snacks/grown/geranium = 5)
+	reqs = list(/obj/item/food/grown/geranium = 5)
 	category = CAT_CLOTHING
 
 #undef ALLOWED_INGREDIENT_SUNGLASSES

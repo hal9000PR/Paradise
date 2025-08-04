@@ -3,21 +3,28 @@
 	desc = "A rechargeable electrochemical power cell."
 	icon = 'icons/obj/power.dmi'
 	icon_state = "cell"
-	item_state = "cell"
+	item_state = "cell1"
 	origin_tech = "powerstorage=1"
 	force = 5
 	throwforce = 5
-	throw_speed = 2
 	throw_range = 5
-	w_class = WEIGHT_CLASS_SMALL
-	var/charge = 0	// note %age conveted to actual charge in New
+	/// Battery's current state of charge (kilojoules)
+	var/charge = 0
+	/// Battery's maximum state of charge (kilojoules)
 	var/maxcharge = 1000
+	/// How much energy the cell starts with (kilojoules)
+	var/starting_charge
 	materials = list(MAT_METAL = 700, MAT_GLASS = 50)
-	var/rigged = FALSE		// true if rigged to explode
-	var/chargerate = 100 //how much power is given every tick in a recharger
-	var/self_recharge = 0 //does it self recharge, over time, or not?
+	///If the battery will explode
+	var/rigged = FALSE
+	/// How much energy is given to a recharging cell every tick (kilojoules / tick)
+	var/chargerate = 100
+	///Whether it will recharge automatically
+	var/self_recharge = FALSE
+	///Whether the description will include the maxcharge
 	var/ratingdesc = TRUE
-	var/grown_battery = FALSE // If it's a grown that acts as a battery, add a wire overlay to it.
+	///Additional overlay to signify battery being organic
+	var/grown_battery = FALSE
 
 /obj/item/stock_parts/cell/get_cell()
 	return src
@@ -25,9 +32,10 @@
 /obj/item/stock_parts/cell/New()
 	..()
 	START_PROCESSING(SSobj, src)
-	charge = maxcharge
+	charge = !isnull(starting_charge) ? starting_charge : maxcharge
 	if(ratingdesc)
-		desc += " This one has a power rating of [DisplayPower(maxcharge)], and you should not swallow it."
+		// State of charge is in kJ so we multiply it by 1000 to get Joules
+		desc += " This one has a power rating of [DisplayJoules(maxcharge * 1000)], and you should not swallow it."
 	update_icon(UPDATE_OVERLAYS)
 
 /obj/item/stock_parts/cell/Destroy()
@@ -95,7 +103,7 @@
 	to_chat(viewers(user), "<span class='suicide'>[user] is licking the electrodes of [src]! It looks like [user.p_theyre()] trying to commit suicide!</span>")
 	return FIRELOSS
 
-/obj/item/stock_parts/cell/attackby(obj/item/W, mob/user, params)
+/obj/item/stock_parts/cell/attackby__legacy__attackchain(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/reagent_containers/syringe))
 		var/obj/item/reagent_containers/syringe/S = W
 
@@ -127,7 +135,8 @@
 	log_admin("LOG: Rigged power cell explosion, last touched by [fingerprintslast]")
 	message_admins("LOG: Rigged power cell explosion, last touched by [fingerprintslast]")
 
-	explosion(T, devastation_range, heavy_impact_range, light_impact_range, flash_range)
+	explosion(T, devastation_range, heavy_impact_range, light_impact_range, flash_range, cause = "Powercell explosion")
+	charge = 0 //Extra safety in the event the cell does not QDEL right
 	qdel(src)
 
 /obj/item/stock_parts/cell/proc/corrupt()
@@ -163,9 +172,13 @@
 		return 0
 
 // Cell variants
-/obj/item/stock_parts/cell/empty/New()
-	..()
-	charge = 0
+/obj/item/stock_parts/cell/empty
+	starting_charge = 0
+
+/obj/item/stock_parts/cell/lever_gun
+	name = "\improper cycle charge cell"
+	desc = "You shouldn't be seeing this."
+	maxcharge = 150
 
 /obj/item/stock_parts/cell/crap
 	name = "\improper Nanotrasen brand rechargeable AA battery"
@@ -174,10 +187,8 @@
 	materials = list(MAT_GLASS = 40)
 	rating = 2
 
-/obj/item/stock_parts/cell/crap/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/crap/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/upgraded
 	name = "upgraded power cell"
@@ -199,10 +210,8 @@
 	materials = list(MAT_GLASS = 40)
 	rating = 2.5
 
-/obj/item/stock_parts/cell/secborg/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/secborg/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/hos_gun
 	name = "\improper X-01 multiphase energy gun power cell"
@@ -241,53 +250,48 @@
 	maxcharge = 15000
 	chargerate = 2250
 
-/obj/item/stock_parts/cell/high/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/high/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/super
 	name = "super-capacity power cell"
 	origin_tech = "powerstorage=3;materials=3"
 	icon_state = "scell"
+	item_state = "cell2"
 	maxcharge = 20000
 	materials = list(MAT_GLASS = 300)
 	rating = 4
 	chargerate = 2000
 
-/obj/item/stock_parts/cell/super/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/super/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/hyper
 	name = "hyper-capacity power cell"
 	origin_tech = "powerstorage=4;engineering=4;materials=4"
 	icon_state = "hpcell"
+	item_state = "cell2"
 	maxcharge = 30000
 	materials = list(MAT_GLASS = 400)
 	rating = 5
 	chargerate = 3000
 
-/obj/item/stock_parts/cell/hyper/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/hyper/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/bluespace
 	name = "bluespace power cell"
 	desc = "A rechargeable transdimensional power cell."
 	origin_tech = "powerstorage=5;bluespace=4;materials=4;engineering=4"
 	icon_state = "bscell"
+	item_state = "cell3"
 	maxcharge = 40000
 	materials = list(MAT_GLASS = 600)
 	rating = 6
 	chargerate = 4000
 
-/obj/item/stock_parts/cell/bluespace/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/bluespace/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/bluespace/charging
 	name = "self-charging bluespace power cell"
@@ -295,9 +299,13 @@
 	origin_tech =  "powerstorage=10;bluespace=10"
 	self_recharge = TRUE
 
+/obj/item/stock_parts/cell/bluespace/trapped
+	rigged = TRUE
+
 /obj/item/stock_parts/cell/infinite
 	name = "infinite-capacity power cell!"
 	icon_state = "icell"
+	item_state = "cell4"
 	origin_tech =  "powerstorage=7"
 	maxcharge = 30000
 	materials = list(MAT_GLASS=1000)
@@ -312,6 +320,7 @@
 	desc = "An alien power cell that produces energy seemingly out of nowhere."
 	icon = 'icons/obj/abductor.dmi'
 	icon_state = "cell"
+	item_state = "cella"
 	maxcharge = 50000
 	rating = 12
 	ratingdesc = FALSE
@@ -324,11 +333,11 @@
 	desc = "A rechargeable starch based power cell."
 	icon = 'icons/obj/hydroponics/harvest.dmi'
 	icon_state = "potato"
+	item_state = "cellp"
 	origin_tech = "powerstorage=1;biotech=1"
 	charge = 100
 	maxcharge = 300
 	materials = list()
-	rating = 1
 	grown_battery = TRUE //it has the overlays for wires
 
 /obj/item/stock_parts/cell/high/slime
@@ -337,6 +346,7 @@
 	origin_tech = "powerstorage=5;biotech=4"
 	icon = 'icons/mob/slimes.dmi'
 	icon_state = "yellow slime extract"
+	item_state = "cellsl"
 	materials = list()
 	rating = 5 //self-recharge makes these desirable
 	self_recharge = 1 // Infused slime cores self-recharge, over time
@@ -348,10 +358,8 @@
 	maxcharge = 500
 	rating = 3
 
-/obj/item/stock_parts/cell/emproof/empty/New()
-	..()
-	charge = 0
-	update_icon(UPDATE_OVERLAYS)
+/obj/item/stock_parts/cell/emproof/empty
+	starting_charge = 0
 
 /obj/item/stock_parts/cell/emproof/emp_act(severity)
 	return
@@ -376,3 +384,10 @@
 	name = "reactive armor power cell"
 	desc = "A cell used to power reactive armors."
 	maxcharge = 2400
+
+/obj/item/stock_parts/cell/flayerprod
+	name = "mind flayer internal cell"
+	desc = "you shouldn't be seeing this, contact a coder"
+	maxcharge = 4000
+	self_recharge = TRUE
+	chargerate = 200 //This self charges it 50 power per tick at the base level

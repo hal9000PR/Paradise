@@ -9,7 +9,6 @@
 	name = "Lithium"
 	id = "lithium"
 	description = "A chemical element."
-	reagent_state = SOLID
 	color = "#808080" // rgb: 128, 128, 128
 	taste_description = "metal"
 
@@ -64,7 +63,7 @@
 /datum/reagent/psilocybin
 	name = "Psilocybin"
 	id = "psilocybin"
-	description = "A strong psycotropic derived from certain species of mushroom."
+	description = "A strong psychotropic derived from certain species of mushroom."
 	color = "#E700E7" // rgb: 231, 0, 231
 	taste_description = "visions"
 
@@ -248,7 +247,6 @@
 	name = "Pump Up"
 	id = "pump_up"
 	description = "An awful smelling mixture which acts as a makeshift stimulant"
-	reagent_state = SOLID
 	color = COLOR_HALF_TRANSPARENT_BLACK
 	taste_description = "poorly mixed coffee"
 	metabolization_rate = 1
@@ -345,7 +343,7 @@
 			M.emote("cry")
 	else if(severity == 2)
 		if(effect <= 2)
-			M.visible_message("<span class='warning'>[M]</b> sways and falls over!</span>")
+			M.visible_message("<span class='warning'>[M] sways and falls over!</span>")
 			update_flags |= M.adjustToxLoss(3, FALSE)
 			update_flags |= M.adjustBrainLoss(3, FALSE)
 			M.Weaken(16 SECONDS)
@@ -443,7 +441,6 @@
 	name = "Bath Salts"
 	id = "bath_salts"
 	description = "Sometimes packaged as a refreshing bathwater additive, these crystals are definitely not for human consumption."
-	reagent_state = SOLID
 	color = "#FAFAFA"
 	overdose_threshold = 20
 	addiction_chance = 15
@@ -617,7 +614,7 @@
 /datum/reagent/happiness
 	name = "Happiness"
 	id = "happiness"
-	description = "Fills you with ecstasic numbness and causes minor brain damage. If overdosed, causes sudden mood swings and spikes in heart rate."
+	description = "Fills you with ecstatic numbness and causes minor brain damage. If overdosed, causes sudden mood swings and spikes in heart rate."
 	reagent_state = LIQUID
 	color = "#f2ff00"
 	overdose_threshold = 20
@@ -801,7 +798,7 @@
 /datum/reagent/rotatium
 	name = "Rotatium"
 	id = "rotatium"
-	description = "A constantly swirling, oddly colourful fluid. Causes the consumer's sense of direction and hand-eye coordination to become wild."
+	description = "A constantly swirling, oddly colorful fluid. Causes the consumer's sense of direction and hand-eye coordination to become wild."
 	reagent_state = LIQUID
 	color = "#AC88CA" //RGB: 172, 136, 202
 	metabolization_rate = 0.6 * REAGENTS_METABOLISM
@@ -1134,7 +1131,6 @@
 	name = "Ultra-Lube"
 	id = "ultralube"
 	description = "Ultra-Lube is an enhanced lubricant which induces effect similar to Methamphetamine in synthetic users by drastically reducing internal friction and increasing cooling capabilities."
-	reagent_state = LIQUID
 	color = "#1BB1FF"
 	process_flags = SYNTHETIC
 	overdose_threshold = 20
@@ -1172,6 +1168,24 @@
 		M.emote(pick("twitch", "shiver"))
 	return ..() | update_flags
 
+/// Used to test if an IPC is a mindflayer or not
+/datum/reagent/lube/conductive
+	name = "Conductive Lubricant"
+	id = "conductivelube"
+	description = "This is a special lubricant designed to attract onto and excite parasitic mindflayer swarms, revealing if someone hosts a hive. Doesn't include a cooling agent, so tends to cause overheating."
+	harmless = FALSE
+	color = "#163b39"
+	taste_description = "batteries"
+	process_flags = SYNTHETIC
+
+/datum/reagent/lube/conductive/on_mob_life(mob/living/M)
+	var/datum/antagonist/mindflayer/flayer = M.mind?.has_antag_datum(/datum/antagonist/mindflayer)
+	if(flayer && (flayer.total_swarms_gathered > 0)) // Like vampires, give flayers who haven't done anything yet a pass
+		M.Jitter(30 SECONDS_TO_JITTER)
+		if(prob(20))
+			do_sparks(5, FALSE, M)
+	M.bodytemperature += 40
+	return ..()
 
 /datum/reagent/lube/ultra/on_mob_delete(mob/living/M)
 	REMOVE_TRAIT(M, TRAIT_GOTTAGOFAST, id)
@@ -1253,103 +1267,6 @@
 		update_flags |= M.adjustFireLoss(rand(1,5)*REAGENTS_EFFECT_MULTIPLIER, FALSE)
 		update_flags |= M.adjustBruteLoss(rand(1,5)*REAGENTS_EFFECT_MULTIPLIER, FALSE)
 	return list(0, update_flags)
-
-
-//surge+, used in supercharge implants
-/datum/reagent/surge_plus
-	name = "Surge Plus"
-	id = "surge_plus"
-	description = "A superconducting gel that overloads processors, causing an effect reportedly similar to benzodiazepines in synthetic units."
-	reagent_state = LIQUID
-	color = "#28b581"
-
-	process_flags = SYNTHETIC
-	overdose_threshold = 30
-	addiction_chance = 1
-	addiction_chance_additional = 20
-	addiction_threshold = 5
-	addiction_decay_rate = 0.2
-	taste_description = "silicon"
-
-/datum/reagent/surge_plus/on_mob_life(mob/living/M)
-	var/update_flags = STATUS_UPDATE_NONE
-	M.AdjustParalysis(-8 SECONDS)
-	M.AdjustStunned(-8 SECONDS)
-	M.AdjustWeakened(-8 SECONDS)
-	M.AdjustKnockDown(-8 SECONDS)
-	update_flags |= M.adjustStaminaLoss(-25, FALSE)
-	if(prob(5))
-		var/high_message = pick("You feel calm.", "You feel collected.", "You feel like you need to relax.")
-		if(prob(10))
-			high_message = "0100011101001111010101000101010001000001010001110100111101000110010000010101001101010100!"
-		to_chat(M, "<span class='notice'>[high_message]</span>")
-
-	return ..() | update_flags
-
-/datum/reagent/surge_plus/overdose_process(mob/living/M, severity)
-	var/update_flags = STATUS_UPDATE_NONE
-	var/recent_consumption = holder.addiction_threshold_accumulated[type]
-	M.Jitter(40 SECONDS)
-	M.Stuttering(10 SECONDS)
-	if(prob(5 * DRAWBACK_CHANCE_MODIFIER(recent_consumption)))
-		to_chat(M, "<span class='notice'>Your circuits overheat!</span>") // synth fever
-		M.bodytemperature += 30 * DRAWBACK_CHANCE_MODIFIER(recent_consumption * 2)
-		M.Confused(1 SECONDS * DRAWBACK_CHANCE_MODIFIER(recent_consumption * 2))
-	if(prob(10))
-		to_chat(M, "<span class='danger'>You experience a violent electrical discharge!</span>")
-		playsound(get_turf(M), 'sound/effects/eleczap.ogg', 75, TRUE)
-		var/icon/I = new('icons/obj/zap.dmi', "lightningend")
-		I.Turn(-135)
-		var/obj/effect/overlay/beam/B = new(get_turf(M))
-		B.pixel_x = rand(-20, 0)
-		B.pixel_y = rand(-20, 0)
-		B.icon = I
-		update_flags |= M.adjustFireLoss(rand(1, 5) * REAGENTS_EFFECT_MULTIPLIER, FALSE)
-		update_flags |= M.adjustBruteLoss(rand(1, 5) * REAGENTS_EFFECT_MULTIPLIER, FALSE)
-	return list(0, update_flags)
-
-//Servo Lube, supercharge
-/datum/reagent/lube/combat
-	name = "Combat-Lube"
-	id = "combatlube"
-	description = "Combat-Lube is a refined and enhanced lubricant which induces effect stronger than Methamphetamine in synthetic users by drastically reducing internal friction and increasing cooling capabilities."
-	process_flags = SYNTHETIC
-	overdose_threshold = 30
-	addiction_chance = 1
-	addiction_chance_additional = 20
-
-/datum/reagent/lube/combat/on_mob_add(mob/living/L)
-	ADD_TRAIT(L, TRAIT_GOTTAGOFAST, id)
-
-/datum/reagent/lube/combat/on_mob_life(mob/living/M)
-	M.SetSleeping(0)
-	M.SetDrowsy(0)
-
-	var/high_message = pick("You feel your servos whir!", "You feel like you need to go faster.", "You feel like you were just overclocked!")
-	if(prob(10))
-		high_message = "0100011101001111010101000101010001000001010001110100111101000110010000010101001101010100!"
-	if(prob(5))
-		to_chat(M, "<span class='notice'>[high_message]</span>")
-	return ..()
-
-/datum/reagent/lube/combat/on_mob_delete(mob/living/M)
-	REMOVE_TRAIT(M, TRAIT_GOTTAGOFAST, id)
-	..()
-
-/datum/reagent/lube/combat/overdose_process(mob/living/M, severity)
-	var/list/overdose_info = ..()
-	var/effect = overdose_info[REAGENT_OVERDOSE_EFFECT]
-	var/update_flags = overdose_info[REAGENT_OVERDOSE_FLAGS]
-	if(prob(20))
-		M.emote("ping")
-	if(prob(33))
-		M.visible_message("<span class='danger'>[M]'s hands flip out and flail everywhere!</span>")
-		var/obj/item/I = M.get_active_hand()
-		if(I)
-			M.drop_item()
-	update_flags |= M.adjustFireLoss(5, FALSE)
-	update_flags |= M.adjustBrainLoss(3, FALSE)
-	return list(effect, update_flags)
 
 #undef DRAWBACK_CHANCE_MODIFIER
 #undef CONSTANT_DOSE_SAFE_LIMIT

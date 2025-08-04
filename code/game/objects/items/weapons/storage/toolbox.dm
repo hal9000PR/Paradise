@@ -8,8 +8,6 @@
 	flags = CONDUCT
 	force = 10
 	throwforce = 10
-	throw_speed = 2
-	throw_range = 7
 	w_class = WEIGHT_CLASS_BULKY
 	max_w_class = WEIGHT_CLASS_NORMAL
 	max_combined_w_class = 18
@@ -90,12 +88,12 @@
 	new /obj/item/wirecutters(src)
 	new /obj/item/t_scanner(src)
 	new /obj/item/crowbar(src)
-	new /obj/item/stack/cable_coil(src, 30, paramcolor = pickedcolor)
-	new /obj/item/stack/cable_coil(src, 30, paramcolor = pickedcolor)
+	new /obj/item/stack/cable_coil(src, 30, pickedcolor)
+	new /obj/item/stack/cable_coil(src, 30, pickedcolor)
 	if(prob(5))
 		new /obj/item/clothing/gloves/color/yellow(src)
 	else
-		new /obj/item/stack/cable_coil(src, 30, paramcolor = pickedcolor)
+		new /obj/item/stack/cable_coil(src, 30, pickedcolor)
 
 /obj/item/storage/toolbox/syndicate
 	name = "suspicious looking toolbox"
@@ -132,7 +130,7 @@
 	new /obj/item/wrench(src)
 	new /obj/item/weldingtool(src)
 	new /obj/item/crowbar(src)
-	new /obj/item/stack/cable_coil(src, 30, paramcolor = pickedcolor)
+	new /obj/item/stack/cable_coil(src, 30, pickedcolor)
 	new /obj/item/wirecutters(src)
 	new /obj/item/multitool(src)
 

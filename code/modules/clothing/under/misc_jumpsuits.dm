@@ -1,7 +1,6 @@
 /obj/item/clothing/under/misc
 	desc = "A standard issue colored jumpsuit. Variety is the spice of life!"
 	dyeable = TRUE
-	icon = 'icons/obj/clothing/under/misc.dmi'
 
 	sprite_sheets = list(
 		"Human" = 'icons/mob/clothing/under/misc.dmi',
@@ -26,7 +25,7 @@
 
 /obj/item/clothing/under/misc/scratch
 	name = "white suit"
-	desc = "A white suit, suitable for an excellent host"
+	desc = "A white suit, suitable for an excellent host."
 	icon_state = "scratch"
 	item_state = "scratch"
 	item_color = "scratch"
@@ -58,7 +57,7 @@
 	item_state = "gy_suit"
 	item_color = "vice"
 
-/obj/item/clothing/under/misc/gimmick/rank/captain/suit
+/obj/item/clothing/under/misc/gimmick_captain_suit
 	name = "captain's suit"
 	desc = "A green suit and yellow necktie. Exemplifies authority."
 	icon_state = "green_suit"

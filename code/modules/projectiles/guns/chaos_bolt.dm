@@ -18,7 +18,8 @@
 
 /obj/item/projectile/magic/chaos/on_hit(atom/target, blocked = 0)
 	. = ..()
-
+	if(!.)
+		return
 	if(iswallturf(target) || isobj(target))
 		target.color = pick(GLOB.random_color_list)
 		return
@@ -121,7 +122,7 @@
 			H.makeCluwne()
 		if("spaced")
 			for(var/obj/item/I in H)
-				H.unEquip(I, TRUE)
+				H.drop_item_to_ground(I, force = TRUE)
 			var/turf/T = safepick(get_area_turfs(/area/space/nearstation)) //Send in space next to the station
 			if(!T) //Shouldn't happen but just in case
 				T = safepick(get_area_turfs(/area/space))
@@ -144,10 +145,10 @@
 			qdel(H)
 		if("exploded")
 			H.visible_message("<span class='chaosverybad'>[H] explodes!</span>", "<span class='chaosverybad'>Boom!</span>")
-			explosion(get_turf(H), 1, 1, 1, cause = "staff of chaos lethal explosion effect")
+			explosion(get_turf(H), 1, 1, 1, cause = "staff of chaos lethal explosion effect, fired by [key_name(firer)]")
 		if("cheese morphed")
 			H.visible_message("<span class='chaosverybad'>[H] transforms into cheese!</span>", "<span class='chaosverybad'>You've been transformed into cheese!</span>")
-			new /obj/item/food/snacks/cheesewedge(get_turf(H))
+			new /obj/item/food/sliced/cheesewedge(get_turf(H))
 			qdel(H)
 		if("supermattered")
 			var/obj/machinery/atmospherics/supermatter_crystal/supercrystal = GLOB.main_supermatter_engine
@@ -191,7 +192,7 @@
 		if("fireballed")
 			H.visible_message("<span class='chaosbad'>[H] is hit by a fireball! </span>", "<span class='chaosverybad'>You get hit by a fireball!</span>")
 			H.apply_damage(CHAOS_STAFF_DAMAGE / 3, BRUTE)
-			explosion(get_turf(H), -1, 0, 2, 3, flame_range = 2, cause = "staff of chaos fireball effect")
+			explosion(get_turf(H), -1, 0, 2, 3, flame_range = 2, cause = "staff of chaos fireball effect, fired by [key_name(firer)]")
 		if("ice spiked")
 			H.visible_message("<span class='chaosbad'>[H]'s chest get pierced by an ice spike!</span>", "<span class='chaosverybad'>An ice spike pierces your chest!</span>")
 			H.apply_damage(CHAOS_STAFF_DAMAGE, BRUTE, "chest")
@@ -247,6 +248,7 @@
 			H.electrocute_act(CHAOS_STAFF_DAMAGE, src)
 
 /datum/status_effect/teleport_roulette
+	id = "teleport_roulette"
 	duration = 16 SECONDS
 	status_type = STATUS_EFFECT_REPLACE
 	tick_interval = 2 SECONDS
@@ -321,13 +323,13 @@
 		if("toy revolver")
 			item_to_summon = /obj/item/gun/projectile/revolver/capgun/chaosprank
 		if("cheese")
-			item_to_summon = /obj/item/food/snacks/cheesewedge
+			item_to_summon = /obj/item/food/sliced/cheesewedge
 			explosion_amount = rand(5, 10)
 		if("food")
 			target.visible_message("<span class='chaosneutral'>Food scatters around [target]!</span>", "<span class='chaosneutral'>A bunch of food scatters around you!</span>")
 			var/limit = rand(5, 10)
 			for(var/i in 1 to limit)
-				var/type = pick(typesof(/obj/item/food/snacks))
+				var/type = pick(typesof(/obj/item/food))
 				var/obj/item/I = new type(get_turf(target))
 				INVOKE_ASYNC(I, TYPE_PROC_REF(/atom/movable, throw_at), pick(oview(7, get_turf(src))), 10, 1)
 
@@ -347,7 +349,7 @@
 			item_to_summon = /obj/item/banhammer
 			explosion_amount = rand(2, 5)
 		if("banana")
-			item_to_summon = /obj/item/food/snacks/grown/banana
+			item_to_summon = /obj/item/food/grown/banana
 
 /**
   * Picks a random gift to be given to mob/living/target. Should be valuable and/or threatening to the wizard.
@@ -369,7 +371,7 @@
 		if("tarot deck")
 			item_to_summon = /obj/item/tarot_generator
 		if("bluespace banana")
-			item_to_summon = /obj/item/food/snacks/grown/banana/bluespace
+			item_to_summon = /obj/item/food/grown/banana/bluespace
 		if("banana grenade")
 			item_to_summon = /obj/item/grenade/clown_grenade
 		if("disco ball")

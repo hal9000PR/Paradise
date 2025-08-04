@@ -4,7 +4,6 @@
 	icon_state = "muzzle"
 	item_state = "muzzle"
 	flags_cover = MASKCOVERSMOUTH
-	w_class = WEIGHT_CLASS_SMALL
 	gas_transfer_coefficient = 0.90
 	put_on_delay = 2 SECONDS
 	/// How long you need to gnaw to get rid of the gag, 0 to make it impossible to remove
@@ -32,7 +31,7 @@
 	if(security_lock)
 		security_lock = FALSE
 		locked = FALSE
-		flags &= ~NODROP
+		set_nodrop(FALSE, loc)
 		desc += " This one appears to be broken."
 		return TRUE
 	else
@@ -46,7 +45,7 @@
 	else if(ACCESS_BRIG in user.get_access())
 		to_chat(user, "<span class='warning'>The muzzle unlocks with a click.</span>")
 		locked = FALSE
-		flags &= ~NODROP
+		set_nodrop(FALSE, loc)
 		return TRUE
 
 	to_chat(user, "<span class='warning'>You must be wearing a security ID card or have one in your inactive hand to remove the muzzle.</span>")
@@ -55,7 +54,7 @@
 /obj/item/clothing/mask/muzzle/proc/do_lock(mob/living/carbon/human/user)
 	if(security_lock)
 		locked = TRUE
-		flags |= NODROP
+		set_nodrop(TRUE, loc)
 		return TRUE
 	return FALSE
 
@@ -91,10 +90,8 @@
 	desc = "A muzzle designed to prevent biting."
 	icon_state = "muzzle_secure"
 	item_state = "muzzle_secure"
-	resist_time = 0 SECONDS
 	mute = MUZZLE_MUTE_NONE
 	security_lock = TRUE
-	locked = FALSE
 	materials = list(MAT_METAL=500, MAT_GLASS=50)
 
 	sprite_sheets = list(
@@ -113,7 +110,7 @@
 	origin_tech = "materials=1;engineering=1"
 	materials = list(MAT_METAL=500, MAT_GLASS=50)
 
-/obj/item/clothing/mask/muzzle/safety/shock/attackby(obj/item/W, mob/user, params)
+/obj/item/clothing/mask/muzzle/safety/shock/attackby__legacy__attackchain(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/assembly/signaler) || istype(W, /obj/item/assembly/voice))
 		if(istype(trigger, /obj/item/assembly/signaler) || istype(trigger, /obj/item/assembly/voice))
 			to_chat(user, "<span class='notice'>Something is already attached to [src].</span>")
@@ -154,7 +151,6 @@
 	return FALSE
 
 /obj/item/clothing/mask/muzzle/safety/shock/proc/process_activation(obj/D, normal = 1, special = 1)
-	visible_message("[bicon(src)] *beep* *beep*", "*beep* *beep*")
 	var/mob/living/L = can_shock(loc)
 	if(!L)
 		return
@@ -199,7 +195,7 @@
 		)
 
 
-/obj/item/clothing/mask/surgical/attack_self(mob/user)
+/obj/item/clothing/mask/surgical/attack_self__legacy__attackchain(mob/user)
 	adjustmask(user)
 
 /obj/item/clothing/mask/fakemoustache
@@ -219,55 +215,15 @@
 		"Drask" = 'icons/mob/clothing/species/drask/mask.dmi'
 		)
 
-/obj/item/clothing/mask/fakemoustache/attack_self(mob/user)
+/obj/item/clothing/mask/fakemoustache/attack_self__legacy__attackchain(mob/user)
 	pontificate(user)
 
 /obj/item/clothing/mask/fakemoustache/item_action_slot_check(slot)
-	if(slot == SLOT_HUD_WEAR_MASK)
+	if(slot == ITEM_SLOT_MASK)
 		return 1
 
 /obj/item/clothing/mask/fakemoustache/proc/pontificate(mob/user)
 	user.visible_message("<span class='danger'>\ [user] twirls [user.p_their()] moustache and laughs [pick("fiendishly","maniacally","diabolically","evilly")]!</span>")
-
-//scarves (fit in in mask slot)
-
-/obj/item/clothing/mask/bluescarf
-	name = "blue neck scarf"
-	desc = "A blue neck scarf."
-	icon_state = "blueneckscarf"
-	item_state = "blueneckscarf"
-	flags_cover = MASKCOVERSMOUTH
-	w_class = WEIGHT_CLASS_SMALL
-	gas_transfer_coefficient = 0.90
-
-
-/obj/item/clothing/mask/redscarf
-	name = "red scarf"
-	desc = "A red and white checkered neck scarf."
-	icon_state = "redwhite_scarf"
-	item_state = "redwhite_scarf"
-	flags_cover = MASKCOVERSMOUTH
-	w_class = WEIGHT_CLASS_SMALL
-	gas_transfer_coefficient = 0.90
-
-/obj/item/clothing/mask/greenscarf
-	name = "green scarf"
-	desc = "A green neck scarf."
-	icon_state = "green_scarf"
-	item_state = "green_scarf"
-	flags_cover = MASKCOVERSMOUTH
-	w_class = WEIGHT_CLASS_SMALL
-	gas_transfer_coefficient = 0.90
-
-/obj/item/clothing/mask/ninjascarf
-	name = "ninja scarf"
-	desc = "A stealthy, dark scarf."
-	icon_state = "ninja_scarf"
-	item_state = "ninja_scarf"
-	flags_cover = MASKCOVERSMOUTH
-	w_class = WEIGHT_CLASS_SMALL
-	gas_transfer_coefficient = 0.90
-
 
 /obj/item/clothing/mask/pig
 	name = "pig mask"
@@ -276,7 +232,6 @@
 	item_state = "pig"
 	flags = BLOCKHAIR
 	flags_inv = HIDEFACE
-	w_class = WEIGHT_CLASS_SMALL
 
 
 /obj/item/clothing/mask/horsehead
@@ -286,7 +241,6 @@
 	item_state = "horsehead"
 	flags = BLOCKHAIR
 	flags_inv = HIDEFACE
-	w_class = WEIGHT_CLASS_SMALL
 	var/voicechange = FALSE
 	var/temporaryname = " the Horse"
 	var/originalname = ""
@@ -384,7 +338,6 @@
 	icon_state = "fawkes"
 	item_state = "fawkes"
 	flags_inv = HIDEFACE
-	w_class = WEIGHT_CLASS_SMALL
 
 /obj/item/clothing/mask/gas/clown_hat/pennywise
 	name = "\improper Pennywise mask"
@@ -392,7 +345,6 @@
 	icon_state = "pennywise_mask"
 	item_state = "pennywise_mask"
 
-	flags = BLOCK_GAS_SMOKE_EFFECT | AIRTIGHT | BLOCKHAIR
 
 // Bandanas
 /obj/item/clothing/mask/bandana
@@ -401,10 +353,10 @@
 	flags_inv = HIDEFACE
 	flags_cover = MASKCOVERSMOUTH
 	w_class = WEIGHT_CLASS_TINY
-	slot_flags = SLOT_FLAG_MASK
-	adjusted_flags = SLOT_FLAG_HEAD
+	adjusted_flags = ITEM_SLOT_HEAD
 	icon_state = "bandbotany"
 	dyeable = TRUE
+	dyeing_key = DYE_REGISTRY_BANDANA
 	can_toggle = TRUE
 
 	sprite_sheets = list(
@@ -413,12 +365,76 @@
 		"Tajaran" = 'icons/mob/clothing/species/tajaran/mask.dmi',
 		"Vulpkanin" = 'icons/mob/clothing/species/vulpkanin/mask.dmi',
 		"Grey" = 'icons/mob/clothing/species/grey/mask.dmi',
+		"Skrell" = 'icons/mob/clothing/species/skrell/mask.dmi',
 		"Drask" = 'icons/mob/clothing/species/drask/mask.dmi'
 		)
 	actions_types = list(/datum/action/item_action/adjust)
 
-/obj/item/clothing/mask/bandana/attack_self(mob/user)
-	adjustmask(user)
+/obj/item/clothing/mask/bandana/attack_self__legacy__attackchain(mob/user)
+	if(slot_flags & ITEM_SLOT_MASK || slot_flags & ITEM_SLOT_HEAD)
+		adjustmask(user)
+
+/obj/item/clothing/mask/bandana/examine(mob/user)
+	. = ..()
+	if(slot_flags & ITEM_SLOT_NECK)
+		. += "Alt-click to untie it to wear as a mask!"
+	else
+		. += "Alt-click to tie it up to wear on your neck!"
+
+
+/obj/item/clothing/mask/bandana/AltClick(mob/user)
+	if(!iscarbon(user))
+		return
+
+	var/mob/living/carbon/char = user
+	if((char.get_item_by_slot(ITEM_SLOT_NECK) == src) || (char.get_item_by_slot(ITEM_SLOT_MASK) == src) || (char.get_item_by_slot(ITEM_SLOT_HEAD) == src))
+		to_chat(user, ("<span class='warning'>You can't tie [src] while wearing it!</span>"))
+		return
+
+	if(slot_flags & ITEM_SLOT_NECK)
+		icon = initial(icon)
+		flags_inv = initial(flags_inv)
+		flags_cover = initial(flags_cover)
+		slot_flags = initial(slot_flags)
+		icon_state = replacetext(icon_state, "_neck", "")
+		dyeable = initial(dyeable)
+		can_toggle = initial(can_toggle)
+
+		sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/mask.dmi',
+		"Unathi" = 'icons/mob/clothing/species/unathi/mask.dmi',
+		"Tajaran" = 'icons/mob/clothing/species/tajaran/mask.dmi',
+		"Vulpkanin" = 'icons/mob/clothing/species/vulpkanin/mask.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/mask.dmi',
+		"Skrell" = 'icons/mob/clothing/species/skrell/mask.dmi',
+		"Drask" = 'icons/mob/clothing/species/drask/mask.dmi'
+		)
+		actions_types = list(/datum/action/item_action/adjust)
+		var/datum/action/item_action/adjust/act = new(src)
+		if(loc == user)
+			act.Grant(user)
+		to_chat(user, ("<span class='notice'>You untie the neckercheif.</span>"))
+	else
+		icon = 'icons/obj/clothing/neck.dmi'
+		flags_inv = FALSE
+		flags_cover = FALSE
+		slot_flags = ITEM_SLOT_NECK
+		if(up)
+			icon_state = replacetext(icon_state, "_up", "")
+			up = FALSE
+		icon_state += "_neck"
+		dyeable = FALSE
+		can_toggle = FALSE
+
+		sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/neck.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/neck.dmi',
+		)
+		actions_types = list()
+		for(var/datum/action/item_action/adjust/act in actions)
+			act.Remove(user)
+			qdel(act)
+		to_chat(user, ("<span class='notice'>You tie [src] up like a neckerchief.</span>"))
 
 /obj/item/clothing/mask/bandana/red
 	name = "red bandana"
@@ -459,7 +475,6 @@
 /obj/item/clothing/mask/bandana/botany
 	name = "botany bandana"
 	desc = "It's a green bandana with some fine nanotech lining."
-	icon_state = "bandbotany"
 
 /obj/item/clothing/mask/bandana/skull
 	name = "skull bandana"
@@ -474,7 +489,7 @@
 
 /obj/item/clothing/mask/bandana/durathread
 	name = "durathread bandana"
-	desc =  "A bandana made from durathread, you wish it would provide some protection to its wearer, but it's far too thin..."
+	desc = "A bandana made from durathread, you wish it would provide some protection to its wearer, but it's far too thin..."
 	icon_state = "banddurathread"
 
 /obj/item/clothing/mask/false_cluwne_mask
@@ -505,7 +520,7 @@
 /obj/item/clothing/mask/cursedclown/equipped(mob/user, slot)
 	..()
 	var/mob/living/carbon/human/H = user
-	if(istype(H) && slot == SLOT_HUD_WEAR_MASK)
+	if(istype(H) && slot == ITEM_SLOT_MASK)
 		to_chat(H, "<span class='danger'>[src] grips your face!</span>")
 		if(H.mind && H.mind.assigned_role != "Cluwne")
 			H.makeCluwne()

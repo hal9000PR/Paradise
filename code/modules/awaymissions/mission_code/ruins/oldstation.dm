@@ -13,7 +13,6 @@
 /obj/item/card/id/away/old
 	name = "A perfectly retrograde identification card"
 	desc = "A perfectly retrograde identification card. Looks like it could use some flavor."
-	icon = 'icons/obj/card.dmi'
 	icon_state = "retro"
 	access = list(ACCESS_THETA_STATION)
 
@@ -50,6 +49,7 @@
 // MARK: EQUIPMENT
 //////////////////////////////
 /obj/item/storage/firstaid/ancient
+	name = "first-aid kit"
 	icon_state = "firstaid"
 	desc = "A first aid kit with the ability to heal common types of injuries."
 
@@ -62,17 +62,13 @@
 	new /obj/item/stack/medical/ointment(src)
 	new /obj/item/stack/medical/ointment(src)
 
-/obj/item/clothing/head/helmet/space/nasavoid/old
-	name = "Engineering Void Helmet"
-	desc = "A CentCom engineering dark red space suit helmet. While old and dusty, it still gets the job done."
-	icon_state = "void-red"
-	item_state = "void"
+/obj/item/clothing/head/helmet/space/void/old
+	name = "Antique Engineering Void Helmet"
+	desc = "An old helmet meant for EVA engineering work. Any insignia it had has long since worn away. While old and dusty, it still gets the job done."
 
-/obj/item/clothing/suit/space/nasavoid/old
-	name = "Engineering Voidsuit"
-	icon_state = "void-red"
-	item_state = "void"
-	desc = "A CentCom engineering dark red space suit. Age has degraded the suit making it difficult to move around in."
+/obj/item/clothing/suit/space/void/old
+	name = "Antique Engineering Void Suit"
+	desc = "An old softsuit meant for engineering work. Any insignia it had has long since worn away. Age has degraded the suit making it difficult to move around in."
 	slowdown = 4
 	allowed = list(/obj/item/flashlight, /obj/item/tank/internals, /obj/item/multitool)
 
@@ -84,28 +80,21 @@
 /obj/item/clothing/suit/armor/vest/old
 	name = "degrading armor vest"
 	desc = "Older generation Type 1 armored vest. Due to degradation over time the vest is far less maneuverable to move in."
-	icon_state = "armor"
-	item_state = "armor"
 	slowdown = 1
 
 /obj/item/gun/energy/laser/retro/old
 	name = "degrading L-1 laser gun"
-	icon_state = "retro"
 	desc = "A first-generation lasergun developed by Maiman Photonics. It has a unique rechargable internal cell that cannot be removed. \
 	Due to degredation over time, the battery cannot hold as much charge as it used to. You really hope someone has developed a better laser gun while you were in cryo."
 	ammo_type = list(/obj/item/ammo_casing/energy/lasergun/old)
-	ammo_x_offset = 3
 
 /obj/item/ammo_casing/energy/lasergun/old
-	projectile_type = /obj/item/projectile/beam/laser
 	e_cost = 200
-	select_name = "kill"
 
 /obj/item/gun/energy/e_gun/old
 	name = "\improper NT-EW-P:01 prototype energy gun"
 	desc = "A long-lost prototype energy gun developed by Nanotrasen's Theta R&D team. The fire selector has two settings: 'stun', and 'kill'."
 	icon_state = "protolaser"
-	ammo_x_offset = 2
 	ammo_type = list(/obj/item/ammo_casing/energy/laser, /obj/item/ammo_casing/energy/electrode/old)
 
 /obj/item/gun/energy/e_gun/old/examine(mob/user)
@@ -177,8 +166,8 @@
 /obj/item/paper/fluff/ruins/oldstation/report
 	name = "\improper Crew Reawakening Report"
 
-/obj/item/paper/fluff/ruins/oldstation/report/Initialize()
-	..()
+/obj/item/paper/fluff/ruins/oldstation/report/Initialize(mapload)
+	. = ..()
 	init_current_date_string()
 	info = "Artificial Program's report to surviving crewmembers.<br><br>Crew were placed into cryostasis 10 March, 2445.<br><br>Crew were awoken from cryostasis [GLOB.current_date_string].<br><br> \
 	<b>SIGNIFICANT EVENTS OF NOTE</b><br>1: The primary radiation detectors were taken offline after [GLOB.game_year - 2445] years due to power failure, secondary radiation detectors showed no residual \
@@ -346,9 +335,9 @@
 	anchored = locked
 
 	if(anchored)
-		to_chat(user, "<span class='info'>The crate reanchors itself to the ground.</span>")
+		to_chat(user, "<span class='notice'>The crate reanchors itself to the ground.</span>")
 	else
-		to_chat(user, "<span class='info'>The crate unanchors itself from the ground.</span>")
+		to_chat(user, "<span class='notice'>The crate unanchors itself from the ground.</span>")
 
 /obj/structure/closet/crate/secure/oldstation/emag_act(mob/user)
 	// var/can_be_emaged works in mysterious ways so screw it
@@ -392,9 +381,10 @@
 
 /obj/structure/closet/crate/secure/oldstation/research/populate_contents()
 	new /obj/item/circuitboard/circuit_imprinter(src)
-	new /obj/item/circuitboard/destructive_analyzer(src)
+	new /obj/item/circuitboard/scientific_analyzer(src)
 	new /obj/item/circuitboard/protolathe(src)
 	new /obj/item/circuitboard/rdconsole/public(src)
+	new /obj/item/circuitboard/rnd_network_controller(src)
 	new /obj/item/reagent_containers/glass/beaker(src)
 	new /obj/item/reagent_containers/glass/beaker(src)
 	new /obj/item/reagent_containers/glass/beaker(src)
@@ -422,7 +412,7 @@
 	new /obj/item/hemostat(src)
 	new /obj/item/scalpel(src)
 	new /obj/item/cautery(src)
-	new /obj/item/FixOVein(src)
+	new /obj/item/fix_o_vein(src)
 	new /obj/item/surgicaldrill(src)
 	new /obj/item/bonegel(src)
 	new /obj/item/bonesetter(src)
@@ -432,17 +422,15 @@
 // MARK: ENGINES
 //////////////////////////////
 /obj/structure/shuttle/engine/large
-	name = "engine"
 	opacity = TRUE
 	icon = 'icons/obj/2x2.dmi'
 	icon_state = "large_engine"
-	desc = "A very large bluespace engine used to propel very large ships."
+	desc = "A very large sublight engine used to propel very large ships."
 	bound_width = 64
 	bound_height = 64
 	appearance_flags = LONG_GLIDE
 
 /obj/structure/shuttle/engine/huge
-	name = "engine"
 	icon = 'icons/obj/3x3.dmi'
 	icon_state = "huge_engine"
 	desc = "An extremely large bluespace engine used to propel extremely large ships."
@@ -458,13 +446,11 @@
 /area/ruin/ancientstation
 	name = "Charlie Station Main Corridor"
 	icon_state = "green"
-	has_gravity = TRUE
 
 /area/ruin/ancientstation/powered
 	name = "Powered Tile"
 	icon_state = "teleporter"
 	requires_power = FALSE
-	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
 
 /area/ruin/ancientstation/atmo
 	name = "Beta Station Atmospherics"
@@ -499,7 +485,6 @@
 
 /area/ruin/ancientstation/thetacorridor
 	name = "Theta Station Main Corridor"
-	icon_state = "green"
 
 /area/ruin/ancientstation/proto
 	name = "Theta Station Prototype Lab"

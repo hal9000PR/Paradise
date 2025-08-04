@@ -5,6 +5,8 @@
 	icon_state = "syndicate"
 	item_state = "syndicate"
 	armor = list(MELEE = 35, BULLET = 50, LASER = 20, ENERGY = 10, BOMB = 20, RAD = 20, FIRE = 200, ACID = 285)
+	dyeable = TRUE
+	dyeing_key = DYE_REGISTRY_SYNDICATE_HELMET
 	sprite_sheets = list(
 		"Grey" = 'icons/mob/clothing/species/grey/helmet.dmi',
 		"Tajaran" = 'icons/mob/clothing/species/tajaran/helmet.dmi',
@@ -19,6 +21,8 @@
 	item_state = "space_suit_syndicate"
 	desc = "A suspicious-looking space suit. The fabric is reinforced with a blend of nomex and kevlar for added protection."
 	w_class = WEIGHT_CLASS_NORMAL
+	dyeable = TRUE
+	dyeing_key = DYE_REGISTRY_SYNDICATE_SUIT
 	allowed = list(/obj/item/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/melee/baton,/obj/item/melee/energy/sword/saber,/obj/item/restraints/handcuffs,/obj/item/tank/internals)
 	armor = list(MELEE = 35, BULLET = 50, LASER = 20, ENERGY = 10, BOMB = 20, RAD = 20, FIRE = 200, ACID = 285)
 	sprite_sheets = list(
@@ -105,7 +109,6 @@
 
 //Black-green syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/green
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-green"
 	item_state = "syndicate-helm-black-green"
 
@@ -117,7 +120,6 @@
 
 //Black-blue syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/blue
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-blue"
 	item_state = "syndicate-helm-black-blue"
 
@@ -129,31 +131,24 @@
 
 //Black medical syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/med
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-med"
-	item_state = "syndicate-helm-black"
 
 /obj/item/clothing/suit/space/syndicate/black/med
 	name = "green space suit"
 	icon_state = "syndicate-black-med"
-	item_state = "syndicate-black"
 
 
 //Black-orange syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/orange
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-orange"
-	item_state = "syndicate-helm-black"
 
 /obj/item/clothing/suit/space/syndicate/black/orange
 	name = "black and orange space suit"
 	icon_state = "syndicate-black-orange"
-	item_state = "syndicate-black"
 
 
 //Black-red syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/red
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-red"
 	item_state = "syndicate-helm-black-red"
 
@@ -181,14 +176,11 @@
 
 //Black with yellow/red engineering syndicate space suit
 /obj/item/clothing/head/helmet/space/syndicate/black/engie
-	name = "black space helmet"
 	icon_state = "syndicate-helm-black-engie"
-	item_state = "syndicate-helm-black"
 
 /obj/item/clothing/suit/space/syndicate/black/engie
 	name = "black engineering space suit"
 	icon_state = "syndicate-black-engie"
-	item_state = "syndicate-black"
 
 /obj/item/clothing/head/helmet/space/syndicate/contractor
 	name = "contractor helmet"
@@ -200,7 +192,6 @@
 /obj/item/clothing/suit/space/syndicate/contractor
 	name = "contractor space suit"
 	desc = "A specialised black and gold space suit that's easier to move around in than its standard Syndicate counterpart. It is made of an exotic military-grade fabric for added protection, and can be ultra-compressed into even the tightest of spaces."
-	slowdown = 1
 	w_class = WEIGHT_CLASS_SMALL
 	icon_state = "syndicate-contractor"
 	item_state = "syndicate-contractor"

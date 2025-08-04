@@ -12,7 +12,6 @@
 	name = "bee"
 	desc = "Buzzy buzzy bee, stingy sti- Ouch!"
 	icon_state = ""
-	icon_living = ""
 	icon = 'icons/mob/bees.dmi'
 	gender = FEMALE
 	speak_emote = list("buzzes")
@@ -34,7 +33,6 @@
 	density = FALSE
 	mob_size = MOB_SIZE_TINY
 	mob_biotypes = MOB_ORGANIC | MOB_BUG
-	flying = TRUE
 	gold_core_spawnable = HOSTILE_SPAWN
 	search_objects = TRUE //have to find those plant trays!
 
@@ -42,6 +40,8 @@
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	minbodytemp = 0
 	del_on_death = TRUE
+
+	initial_traits = list(TRAIT_FLYING)
 
 	var/datum/reagent/beegent = null //hehe, beegent
 	var/obj/structure/beebox/beehome = null
@@ -55,7 +55,7 @@
 	var/static/beehometypecache = typecacheof(/obj/structure/beebox)
 	var/static/hydroponicstypecache = typecacheof(/obj/machinery/hydroponics)
 
-/mob/living/simple_animal/hostile/poison/bees/Process_Spacemove(movement_dir = 0)
+/mob/living/simple_animal/hostile/poison/bees/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
 	return TRUE
 
 /mob/living/simple_animal/hostile/poison/bees/Initialize(mapload)
@@ -245,7 +245,7 @@
 //Botany Queen Bee
 /mob/living/simple_animal/hostile/poison/bees/queen
 	name = "queen bee"
-	desc = "She's the queen of bees, BZZ BZZ"
+	desc = "She's the queen of bees, BZZ BZZ!"
 	icon_base = "queen"
 	isqueen = TRUE
 	mouse_opacity = MOUSE_OPACITY_OPAQUE
@@ -277,7 +277,7 @@
 
 /obj/item/queen_bee
 	name = "queen bee"
-	desc = "She's the queen of bees, BZZ BZZ"
+	desc = "She's the queen of bees, BZZ BZZ!"
 	icon_state = "queen_item"
 	item_state = ""
 	icon = 'icons/mob/bees.dmi'
@@ -285,7 +285,7 @@
 	var/mob/living/simple_animal/hostile/poison/bees/queen/queen
 
 
-/obj/item/queen_bee/attackby(obj/item/I, mob/user, params)
+/obj/item/queen_bee/attackby__legacy__attackchain(obj/item/I, mob/user, params)
 	if(!istype(I, /obj/item/reagent_containers/syringe))
 		return ..()
 	var/obj/item/reagent_containers/syringe/S = I
@@ -320,6 +320,11 @@
 
 /obj/item/queen_bee/Destroy()
 	QDEL_NULL(queen)
+	return ..()
+
+/mob/living/simple_animal/hostile/poison/bees/queen/consider_wakeup()
+	if(beehome && loc == beehome) // The queen is home and doesn't have to do anything.
+		return
 	return ..()
 
 /mob/living/simple_animal/hostile/poison/bees/consider_wakeup()

@@ -4,7 +4,6 @@
 	icon = 'icons/mob/blob.dmi'
 	icon_state = "marker"
 
-	see_in_dark = 8
 	invisibility = INVISIBILITY_OBSERVER
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 	mouse_opacity = MOUSE_OPACITY_OPAQUE
@@ -101,7 +100,7 @@
 	var/follow_text
 	for(var/mob/M in GLOB.mob_list)
 		follow_text = isobserver(M) ? " ([ghost_follow_link(src, ghost=M)])" : ""
-		rendered = "<font color=\"#EE4000\"><i><span class='game say'>Blob Telepathy, <span class='name'>[name]([blob_reagent_datum.name])</span>[follow_text] <span class='message'>states, \"[message]\"</span></span></i></font>"
+		rendered = "<span class='blob'>Blob Telepathy, <span class='name'>[name]([blob_reagent_datum.name])</span>[follow_text] <span class='message'>states, \"[message]\"</span></span>"
 		if(isovermind(M) || isobserver(M) || istype(M, /mob/living/simple_animal/hostile/blob/blobbernaut))
 			M.show_message(rendered, EMOTE_AUDIBLE)
 

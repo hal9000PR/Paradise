@@ -1,17 +1,20 @@
 //KEEP IN MIND: These are different from gun/grenadelauncher. These are designed to shoot premade rocket and grenade projectiles, not flashbangs or chemistry casings etc.
 //Put handheld rocket launchers here if someone ever decides to make something so hilarious ~Paprika
 
-/obj/item/gun/projectile/revolver/grenadelauncher//this is only used for underbarrel grenade launchers at the moment, but admins can still spawn it if they feel like being assholes
+//this is only used for underbarrel grenade launchers at the moment, but admins can still spawn it if they feel like being assholes
+/obj/item/gun/projectile/revolver/grenadelauncher
 	desc = "A break-action grenade launcher."
 	name = "grenade launcher"
+	icon = 'icons/obj/guns/projectile.dmi'
 	icon_state = "dbshotgun_sawn"
 	item_state = "gun"
+	lefthand_file = 'icons/mob/inhands/guns_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/guns_righthand.dmi'
 	mag_type = /obj/item/ammo_box/magazine/internal/grenadelauncher
 	fire_sound = 'sound/weapons/grenadelaunch.ogg'
-	w_class = WEIGHT_CLASS_NORMAL
 	can_holster = FALSE  // Not your normal revolver
 
-/obj/item/gun/projectile/revolver/grenadelauncher/attackby(obj/item/A, mob/user, params)
+/obj/item/gun/projectile/revolver/grenadelauncher/attackby__legacy__attackchain(obj/item/A, mob/user, params)
 	..()
 	if(istype(A, /obj/item/ammo_box) || istype(A, /obj/item/ammo_casing))
 		chamber_round()
@@ -29,7 +32,7 @@
 	icon_state = "mecha_grenadelnchr"
 	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/grenadelauncher/multi/fifteen
 
-/obj/item/gun/projectile/revolver/grenadelauncher/multi/cyborg/attack_self()
+/obj/item/gun/projectile/revolver/grenadelauncher/multi/cyborg/attack_self__legacy__attackchain()
 	return
 
 /obj/item/gun/projectile/automatic/gyropistol
@@ -58,7 +61,7 @@
 	icon_state = "speargun"
 	item_state = "speargun"
 	w_class = WEIGHT_CLASS_BULKY
-	slot_flags = SLOT_FLAG_BACK
+	slot_flags = ITEM_SLOT_BACK
 	origin_tech = "combat=4;engineering=4"
 	force = 10
 	can_suppress = FALSE
@@ -72,14 +75,14 @@
 /obj/item/gun/projectile/automatic/speargun/update_icon_state()
 	return
 
-/obj/item/gun/projectile/automatic/speargun/attack_self()
+/obj/item/gun/projectile/automatic/speargun/attack_self__legacy__attackchain()
 	return
 
 /obj/item/gun/projectile/automatic/speargun/process_chamber(eject_casing = 0, empty_chamber = 1)
 	..()
 
-/obj/item/gun/projectile/automatic/speargun/attackby(obj/item/A, mob/user, params)
-	var/num_loaded = magazine.attackby(A, user, params, 1)
+/obj/item/gun/projectile/automatic/speargun/attackby__legacy__attackchain(obj/item/A, mob/user, params)
+	var/num_loaded = magazine.attackby__legacy__attackchain(A, user, params, 1)
 	if(num_loaded)
 		to_chat(user, "<span class='notice'>You load [num_loaded] spear\s into \the [src].</span>")
 		update_icon()

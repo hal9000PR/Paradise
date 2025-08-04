@@ -2,11 +2,8 @@
 	name = "Ethereal Jaunt"
 	desc = "This spell creates your ethereal form, temporarily making you invisible and able to pass through walls."
 
-	school = "transmutation"
 	base_cooldown = 300
-	clothes_req = TRUE
 	invocation = "none"
-	invocation_type = "none"
 	cooldown_min = 100 //50 deciseconds reduction per rank
 	nonabstract_req = TRUE
 	centcom_cancast = FALSE //Prevent people from getting to centcom
@@ -26,6 +23,8 @@
 /datum/spell/ethereal_jaunt/cast(list/targets, mob/user = usr) //magnets, so mostly hardcoded
 	playsound(get_turf(user), sound1, 50, TRUE, -1)
 	for(var/mob/living/target in targets)
+		if(SEND_SIGNAL(target, COMSIG_MOB_PRE_JAUNT, target) & COMPONENT_BLOCK_JAUNT)
+			continue
 		if(!target.can_safely_leave_loc()) // No more brainmobs hopping out of their brains
 			to_chat(target, "<span class='warning'>You are somehow too bound to your current location to abandon it.</span>")
 			continue
@@ -60,7 +59,7 @@
 	sleep(jaunt_in_time)
 	qdel(holder)
 	if(!QDELETED(target))
-		if(is_blocked_turf(mobloc, TRUE))
+		if(mobloc.is_blocked_turf(exclude_mobs = TRUE))
 			for(var/turf/T in orange(7))
 				if(isspaceturf(T))
 					continue
@@ -81,13 +80,10 @@
 
 /obj/effect/dummy/spell_jaunt
 	name = "water"
-	icon = 'icons/effects/effects.dmi'
 	icon_state = "nothing"
 	var/reappearing = 0
 	var/movedelay = 0
 	var/movespeed = 2
-	density = FALSE
-	anchored = TRUE
 	invisibility = 60
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 

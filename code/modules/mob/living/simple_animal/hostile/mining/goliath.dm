@@ -9,7 +9,6 @@
 	icon_dead = "Goliath_dead"
 	icon_gib = "syndicate_gib"
 	mob_biotypes = MOB_ORGANIC | MOB_BEAST
-	mouse_opacity = MOUSE_OPACITY_ICON
 	move_to_delay = 40
 	ranged = TRUE
 	ranged_cooldown_time = 120
@@ -26,7 +25,6 @@
 	attack_sound = 'sound/weapons/punch1.ogg'
 	throw_message = "does nothing to the rocky hide of the"
 	vision_range = 5
-	aggro_vision_range = 9
 	move_force = MOVE_FORCE_VERY_STRONG
 	move_resist = MOVE_FORCE_VERY_STRONG
 	pull_force = MOVE_FORCE_VERY_STRONG
@@ -34,6 +32,8 @@
 	var/pre_attack_icon = "Goliath_preattack"
 	loot = list(/obj/item/stack/sheet/animalhide/goliath_hide)
 	footstep_type = FOOTSTEP_MOB_HEAVY
+	contains_xeno_organ = TRUE
+	surgery_container = /datum/xenobiology_surgery_container/goliath
 
 /mob/living/simple_animal/hostile/asteroid/goliath/Life()
 	. = ..()
@@ -80,9 +80,7 @@
 
 //Lavaland Goliath
 /mob/living/simple_animal/hostile/asteroid/goliath/beast
-	name = "goliath"
 	desc = "A hulking, armor-plated beast with long tendrils arching from its back."
-	icon = 'icons/mob/lavaland/lavaland_monsters.dmi'
 	icon_state = "goliath"
 	icon_living = "goliath"
 	icon_aggro = "goliath"
@@ -90,7 +88,7 @@
 	throw_message = "does nothing to the tough hide of the"
 	pre_attack_icon = "goliath2"
 	crusher_loot = /obj/item/crusher_trophy/goliath_tentacle
-	butcher_results = list(/obj/item/food/snacks/monstermeat/goliath = 2, /obj/item/stack/sheet/animalhide/goliath_hide = 1, /obj/item/stack/sheet/bone = 2)
+	butcher_results = list(/obj/item/food/monstermeat/goliath = 2, /obj/item/stack/sheet/animalhide/goliath_hide = 1, /obj/item/stack/sheet/bone = 2)
 	loot = list()
 	stat_attack = UNCONSCIOUS
 	robust_searching = TRUE
@@ -109,7 +107,7 @@
 	pre_attack_icon = "Goliath_preattack"
 	throw_message = "does nothing to the rocky hide of the"
 	loot = list(/obj/item/stack/sheet/animalhide/goliath_hide) //A throwback to the asteroid days
-	butcher_results = list(/obj/item/food/snacks/monstermeat/goliath= 2, /obj/item/stack/sheet/bone = 2)
+	butcher_results = list(/obj/item/food/monstermeat/goliath= 2, /obj/item/stack/sheet/bone = 2)
 	crusher_loot = /obj/item/crusher_trophy/goliath_tentacle/ancient
 	crusher_drop_mod = 100 //These things are rare (1/100 per spawner). You shouldn't have to hope for another stroke of luck to get it's trophy after finding it
 	wander = FALSE
@@ -192,3 +190,8 @@
 	icon_state = "Goliath_tentacle_retract"
 	deltimer(timerid)
 	timerid = QDEL_IN(src, 7)
+
+/mob/living/simple_animal/hostile/asteroid/goliath/space
+
+/mob/living/simple_animal/hostile/asteroid/goliath/space/Process_Spacemove(movement_dir, continuous_move)
+	return TRUE

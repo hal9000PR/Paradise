@@ -1,9 +1,6 @@
 /obj/item/projectile/bullet
 	name = "bullet"
-	icon_state = "bullet"
 	damage = 60
-	damage_type = BRUTE
-	flag = "bullet"
 	hitsound_wall = "ricochet"
 	impact_effect_type = /obj/effect/temp_visual/impact_effect
 
@@ -58,6 +55,8 @@
 /obj/item/projectile/bullet/toxinbullet
 	damage = 15
 	damage_type = TOX
+	color = COLOR_GREEN
+
 
 /obj/item/projectile/bullet/incendiary
 	immolate = 1
@@ -96,6 +95,10 @@
 	// initial range - range gives approximate tile distance from user
 	if(initial(range) - range <= 5 && H.getStaminaLoss() >= 60)
 		H.KnockDown(8 SECONDS)
+
+/obj/item/projectile/bullet/pellet/rubber/stinger
+	name = "stingball"
+	damage = 1
 
 /obj/item/projectile/bullet/pellet/assassination
 	damage = 12
@@ -145,6 +148,9 @@
 /obj/item/projectile/bullet/heavybullet
 	damage = 35
 
+/obj/item/projectile/bullet/heavybullet2
+	damage = 40
+
 /// taser slugs for shotguns, nothing special
 /obj/item/projectile/bullet/stunshot
 	name = "stunshot"
@@ -167,7 +173,7 @@
 		var/obj/effect/hotspot/hotspot = new /obj/effect/hotspot/fake(location)
 		hotspot.temperature = 1000
 		hotspot.recolor()
-		location.hotspot_expose(700, 50, 1)
+		location.hotspot_expose(700, 50)
 
 /obj/item/projectile/bullet/incendiary/shell/dragonsbreath
 	name = "dragonsbreath round"
@@ -224,7 +230,7 @@
 	name = "dart"
 	icon_state = "cbbolt"
 	damage = 6
-	var/piercing = FALSE
+	var/penetrate_thick = FALSE
 
 /obj/item/projectile/bullet/dart/New()
 	..()
@@ -235,7 +241,7 @@
 	if(iscarbon(target))
 		var/mob/living/carbon/M = target
 		if(blocked != INFINITY)
-			if(M.can_inject(null, FALSE, hit_zone, piercing)) // Pass the hit zone to see if it can inject by whether it hit the head or the body.
+			if(M.can_inject(null, FALSE, hit_zone, penetrate_thick)) // Pass the hit zone to see if it can inject by whether it hit the head or the body.
 				..()
 
 				reagents.reaction(M, REAGENT_INGEST, 0.1)
@@ -268,7 +274,7 @@
 	damage = 20
 
 /obj/item/projectile/bullet/dart/syringe/pierce_ignore
-	piercing = TRUE
+	penetrate_thick = TRUE
 
 /obj/item/projectile/bullet/dart/syringe/tranquilizer
 

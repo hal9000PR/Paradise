@@ -8,7 +8,6 @@
 	throw_speed = 2
 	throw_range = 3
 	force = 15
-	flags = CONDUCT
 	origin_tech = "combat=6;syndicate=7"
 	fire_sound = 'sound/weapons/blastcannon.ogg'
 	fire_delay = 40
@@ -26,12 +25,11 @@
 	. += "<span class='notice'>It is currently [chambered ? "" : "un"]loaded.</span>"
 
 
-/obj/item/gun/rocketlauncher/attackby(obj/item/I, mob/user, params)
+/obj/item/gun/rocketlauncher/attackby__legacy__attackchain(obj/item/I, mob/user, params)
 	if(!istype(I, /obj/item/ammo_casing/rocket))
 		return ..()
 	if(!chambered)
-		user.unEquip(I)
-		I.forceMove(src)
+		user.transfer_item_to(I, src)
 		chambered = I
 		to_chat(user, "<span class='notice'>You put the rocket in [src].</span>")
 	else

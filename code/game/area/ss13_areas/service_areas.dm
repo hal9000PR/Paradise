@@ -35,10 +35,14 @@
 	valid_territory = FALSE
 	request_console_flags = RC_SUPPLY
 
+/area/station/service/chapel/funeral
+	name = "\improper Funeral Services"
+	sound_environment = SOUND_AREA_STANDARD_STATION
+	valid_territory = TRUE
+
 /area/station/service/chapel/office
 	name = "\improper Chapel Office"
 	icon_state = "chapeloffice"
-	request_console_flags = RC_SUPPLY
 	request_console_name = "Chapel"
 
 /area/station/service/clown

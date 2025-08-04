@@ -1,11 +1,12 @@
 #define REAGENT_TIME_RATIO 2.5
 
 /*
-CONTAINS:
-CIGARETTES
-CIGARS
-SMOKING PIPES
-HOLO-CIGAR
+CONTENTS:
+1. CIGARETTES
+2. CIGARS
+3. HOLO-CIGAR
+4. PIPES
+5. ROLLING
 
 CIGARETTE PACKETS ARE IN FANCY.DM
 LIGHTERS ARE IN LIGHTERS.DM
@@ -18,23 +19,29 @@ LIGHTERS ARE IN LIGHTERS.DM
 /obj/item/clothing/mask/cigarette
 	name = "cigarette"
 	desc = "A roll of tobacco and nicotine."
-	icon_state = "cigoff"
-	throw_speed = 0.5
-	item_state = "cigoff"
-	slot_flags = SLOT_FLAG_MASK
+	icon = 'icons/obj/clothing/smoking.dmi'
+	icon_state = "cig"
+	lefthand_file = 'icons/mob/inhands/smoking_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/smoking_righthand.dmi'
 	w_class = WEIGHT_CLASS_TINY
 	body_parts_covered = null
 	attack_verb = null
 	container_type = INJECTABLE
+	new_attack_chain = TRUE
+	/// Is the cigarette lit?
 	var/lit = FALSE
-	var/icon_on = "cigon"  //Note - these are in masks.dmi not in cigarette.dmi
-	var/icon_off = "cigoff"
-	var/type_butt = /obj/item/cigbutt
-	var/lastHolder = null
-	var/smoketime = 150
+	/// Do we require special items to be lit?
+	var/list/fancy_lighters = list()
+	/// What trash item the cigarette makes when it burns out.
+	var/butt_type = /obj/item/cigbutt
+	/// How long does the cigarette last before going out? Decrements by 1 every cycle.
+	var/smoketime = 150 // 300 seconds.
+	/// The cigarette's total reagent capacity.
 	var/chem_volume = 60
+	/// A list of the types and amounts of reagents in the cigarette.
 	var/list/list_reagents = list("nicotine" = 40)
-	var/first_puff = TRUE // the first puff is a bit more reagents ingested
+	/// Has anyone taken any reagents from the cigarette? The first tick gives a bigger dose.
+	var/first_puff = TRUE
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/mask.dmi',
 		"Unathi" = 'icons/mob/clothing/species/unathi/mask.dmi',
@@ -42,33 +49,125 @@ LIGHTERS ARE IN LIGHTERS.DM
 		"Vulpkanin" = 'icons/mob/clothing/species/vulpkanin/mask.dmi',
 		"Grey" = 'icons/mob/clothing/species/grey/mask.dmi')
 
-	var/static/things_that_light = typecacheof(list(
-		/obj/item/lighter,
-		/obj/item/match,
-		/obj/item/melee/energy/sword/saber,
-		/obj/item/assembly/igniter,
-		/obj/item/gun/magic/wand/fireball))
-
-
 /obj/item/clothing/mask/cigarette/Initialize(mapload)
 	. = ..()
-	create_reagents(chem_volume) // making the cigarrete a chemical holder with a maximum volume of 30
+	create_reagents(chem_volume) // making the cigarrete a chemical holder with a maximum volume of 60
 	reagents.set_reacting(FALSE) // so it doesn't react until you light it
 	if(list_reagents)
 		reagents.add_reagent_list(list_reagents)
 	smoketime = reagents.total_volume * 2.5
-	RegisterSignal(src, COMSIG_ITEM_BEING_ATTACKED, PROC_REF(try_light))
+	update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
+
+/obj/item/clothing/mask/cigarette/update_icon_state()
+	. = ..()
+	icon_state = "[initial(icon_state)][lit ? "_on" : ""]"
+	item_state = "[initial(icon_state)][lit ? "_on" : ""]"
+	if(ishuman(loc))
+		var/mob/living/carbon/human/H = loc
+		H.update_inv_wear_mask()
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+
+/obj/item/clothing/mask/cigarette/update_name()
+	. = ..()
+	if(!lit)
+		name = initial(name)
+	else
+		name = "lit [name]"
+
+/obj/item/clothing/mask/cigarette/activate_self(mob/user)
+	if(..())
+		return
+
+	if(lit)
+		extinguish_cigarette(user)
+
+/obj/item/clothing/mask/cigarette/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/reagent_containers/syringe))
+		return ..()
+
+	if(used.cigarette_lighter_act(user, user, src))
+		return ITEM_INTERACT_COMPLETE
+
+	// Catch any item that has no `cigarette_lighter_act()` but logically should be able to work as a lighter due to being hot.
+	if(used.get_heat())
+		//Give a generic light message.
+		user.visible_message(
+			"<span class='notice'>[user] lights [src] with [used]</span>",
+			"<span class='notice'>You light [src] with [used].</span>"
+		)
+		light(user)
+		return ITEM_INTERACT_COMPLETE
+
+	return ..()
+
+/obj/item/clothing/mask/cigarette/interact_with_atom(atom/target, mob/living/user, list/modifiers)
+	if(!istype(target, /obj/item/reagent_containers/glass))
+		return ..()
+
+	var/obj/item/reagent_containers/glass/glass = target
+	var/transfered = glass.reagents.trans_to(src, chem_volume)
+	if(transfered)
+		to_chat(user, "<span class='notice'>You dip [src] into [target].</span>")
+		return ITEM_INTERACT_COMPLETE
+
+	// Either the beaker was empty, or the cigarette was full
+	if(!glass.reagents.total_volume)
+		to_chat(user, "<span class='notice'>[target] is empty.</span>")
+	else
+		to_chat(user, "<span class='notice'>[src] is full.</span>")
+	return ITEM_INTERACT_COMPLETE
+
+/obj/item/clothing/mask/cigarette/pre_attack(atom/A, mob/living/user, params)
+	if(!ismob(A))
+		return ..()
+
+	var/mob/living/target = A
+	if(target.on_fire)
+		user.changeNext_move(CLICK_CD_MELEE)
+		user.do_attack_animation(target)
+		if(target != user)
+			user.visible_message(
+				"<span class='notice'>[user] coldly lights [src] with the burning body of [target]. Clearly, [user.p_they()] offer[user.p_s()] the warmest of regards...</span>",
+				"<span class='notice'>You coldly light [src] with the burning body of [target].</span>"
+			)
+		else
+			// The fire will light it in your hands by itself, but if you whip out the cig and click yourself fast enough, this will happen. TRULY you have your priorities stright.
+			user.visible_message(
+				"<span class='notice'>[user] quickly whips out [src] and nonchalantly lights it with [user.p_their()] own burning body. Clearly, [user.p_they()] [user.p_have()] [user.p_their()] priorities straight.</span>",
+				"<span class='notice'>You quickly whip out [src] and nonchalantly light it with your own burning body. Clearly, you have your priorities straight.</span>"
+			)
+		light(user, user)
+		return FINISH_ATTACK
+
+	// The above section doesn't check for carbons to allow ALL burning bodies to be used.
+	if(!iscarbon(A))
+		return ..()
+
+	// If the target has no cig, try to give them the cig.
+	var/mob/living/carbon_target = A
+	if(user.zone_selected == "mouth" && !carbon_target.wear_mask && user.a_intent == INTENT_HELP)
+		user.drop_item_to_ground(src, force = TRUE)
+		carbon_target.equip_to_slot_if_possible(src, ITEM_SLOT_MASK)
+		if(target != user)
+			user.visible_message(
+				"<span class='notice'>[user] slips \a [name] into the mouth of [carbon_target].</span>",
+				"<span class='notice'>You slip [src] into the mouth of [carbon_target].</span>"
+			)
+		else
+			to_chat(user, "<span class='notice'>You put [src] into your mouth.</span>")
+		return FINISH_ATTACK
+
+	// If they DO have a cig, try to light it with your own cig.
+	if(cigarette_lighter_act(user, carbon_target))
+		return FINISH_ATTACK
+
+	return ..()
 
 /obj/item/clothing/mask/cigarette/Destroy()
 	QDEL_NULL(reagents)
 	STOP_PROCESSING(SSobj, src)
 	return ..()
-
-/obj/item/clothing/mask/cigarette/proc/try_light(obj/item/cigarette, obj/item/lighting_item)
-	SIGNAL_HANDLER
-	if(lighting_item.get_heat())
-		light()
-		return COMPONENT_CANCEL_ATTACK_CHAIN
 
 /obj/item/clothing/mask/cigarette/decompile_act(obj/item/matter_decompiler/C, mob/user)
 	if(isdrone(user))
@@ -77,21 +176,19 @@ LIGHTERS ARE IN LIGHTERS.DM
 		return TRUE
 	return ..()
 
-/obj/item/clothing/mask/cigarette/attack(mob/living/M, mob/living/user, def_zone)
-	if(istype(M) && M.on_fire)
-		user.changeNext_move(CLICK_CD_MELEE)
-		user.do_attack_animation(M)
-		light("<span class='notice'>[user] coldly lights [src] with the burning body of [M]. Clearly, [user.p_they()] offer[user.p_s()] the warmest of regards...</span>")
-		return TRUE
-	else
-		return ..()
+/obj/item/clothing/mask/cigarette/proc/extinguish_cigarette(mob/user)
+	user.visible_message(
+		"<span class='notice'>[user] calmly drops and treads on [src], putting it out instantly.</span>",
+		"<span class='notice'>You calmly drop and tread on [src], putting it out instantly.</span>",
+		"<span class='notice'>You hear a foot being brought down on something, and the tiny fizzling of an ember going out.</span>"
+	)
+	die()
 
 /obj/item/clothing/mask/cigarette/can_enter_storage(obj/item/storage/S, mob/user)
 	if(lit)
-		to_chat(user, "<span class='warning'>[S] can't hold [initial(name)] while it's lit!</span>") // initial(name) so it doesn't say "lit" twice in a row
+		to_chat(user, "<span class='warning'>[S] can't hold \the [initial(name)] while it's lit!</span>") // initial(name) so it doesn't say "lit" twice in a row
 		return FALSE
-	else
-		return TRUE
+	return TRUE
 
 /obj/item/clothing/mask/cigarette/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume, global_overlay = TRUE)
 	..()
@@ -99,118 +196,77 @@ LIGHTERS ARE IN LIGHTERS.DM
 
 /obj/item/clothing/mask/cigarette/catch_fire()
 	if(!lit)
-		light("<span class='warning'>[src] is lit by the flames!</span>")
+		visible_message("<span class='warning'>[src] is lit by the flames!</span>")
+		light()
 
-/obj/item/clothing/mask/cigarette/welder_act(mob/user, obj/item/I)
-	. = TRUE
-	if(I.tool_use_check(user, 0)) //Don't need to flash eyes because you are a badass
-		light("<span class='notice'>[user] casually lights [src] with [I], what a badass.</span>")
+/obj/item/clothing/mask/cigarette/cigarette_lighter_act(mob/living/user, mob/living/target, obj/item/direct_attackby_item)
+	var/obj/item/clothing/mask/cigarette/cig = ..()
+	if(!cig)
+		return !isnull(cig)
 
-/obj/item/clothing/mask/cigarette/attackby(obj/item/I, mob/user, params)
-	..()
-	if(istype(I, /obj/item/lighter/zippo))
-		var/obj/item/lighter/zippo/Z = I
-		if(Z.lit)
-			light("<span class='rose'>With a single flick of [user.p_their()] wrist, [user] smoothly lights [user.p_their()] [name] with [user.p_their()] [Z]. Damn [user.p_theyre()] cool.</span>")
-
-	else if(istype(I, /obj/item/lighter))
-		var/obj/item/lighter/L = I
-		if(L.lit)
-			light("<span class='notice'>After some fiddling, [user] manages to light [user.p_their()] [name] with [L].</span>")
-
-	else if(istype(I, /obj/item/match/unathi))
-		var/obj/item/match/unathi/U = I
-		if(U.lit)
-			playsound(user.loc, 'sound/effects/unathiignite.ogg', 40, FALSE)
-			light("<span class='rose'>[user] spits fire at [user.p_their()] [name], igniting it.</span>")
-			U.matchburnout()
-
-	else if(istype(I, /obj/item/match))
-		var/obj/item/match/M = I
-		if(M.lit)
-			light("<span class='notice'>[user] lights [user.p_their()] [name] with [user.p_their()] [M].</span>")
-
-	else if(istype(I, /obj/item/melee/energy/sword/saber))
-		var/obj/item/melee/energy/sword/saber/S = I
-		if(S.active)
-			light("<span class='warning'>[user] makes a violent slashing motion, barely missing [user.p_their()] nose as light flashes. [user.p_they(TRUE)] light[user.p_s()] [user.p_their()] [name] with [S] in the process.</span>")
-
-	else if(istype(I, /obj/item/assembly/igniter))
-		light("<span class='notice'>[user] fiddles with [I], and manages to light [user.p_their()] [name].</span>")
-
-	else if(istype(I, /obj/item/gun/magic/wand/fireball))
-		var/obj/item/gun/magic/wand/fireball/F = I
-		if(F.charges)
-			if(prob(50) || user.mind.assigned_role == "Wizard")
-				light("<span class='notice'>Holy shit, did [user] just manage to light [user.p_their()] [name] with [F], with only moderate eyebrow singing?</span>")
-			else
-				to_chat(user, "<span class='warning'>Unsure which end of the wand is which, [user] fails to light [name] with [F].</span>")
-				explosion(user.loc, -1, 0, 2, 3, 0, flame_range = 2)
-			F.charges--
-
-	//can't think of any other way to update the overlays :<
-	user.update_inv_wear_mask()
-	user.update_inv_l_hand()
-	user.update_inv_r_hand()
-
-
-/obj/item/clothing/mask/cigarette/afterattack(obj/item/reagent_containers/glass/glass, mob/user, proximity)
-	..()
-	if(!proximity)
-		return
-	if(istype(glass))	//you can dip cigarettes into beakers
-		var/transfered = glass.reagents.trans_to(src, chem_volume)
-		if(transfered)	//if reagents were transfered, show the message
-			smoketime = reagents.total_volume * 2.5
-			to_chat(user, "<span class='notice'>You dip \the [src] into \the [glass].</span>")
-		else			//if not, either the beaker was empty, or the cigarette was full
-			if(!glass.reagents.total_volume)
-				to_chat(user, "<span class='notice'>[glass] is empty.</span>")
-			else
-				to_chat(user, "<span class='notice'>[src] is full.</span>")
-
-
-/obj/item/clothing/mask/cigarette/proc/light(flavor_text = null)
 	if(!lit)
-		lit = TRUE
-		name = "lit [name]"
-		attack_verb = list("burnt", "singed")
-		hitsound = 'sound/items/welder.ogg'
-		damtype = "fire"
-		force = 4
-		if(reagents.get_reagent_amount("plasma")) // the plasma explodes when exposed to fire
-			var/datum/effect_system/reagents_explosion/e = new()
-			e.set_up(round(reagents.get_reagent_amount("plasma") / 2.5, 1), get_turf(src), 0, 0)
-			e.start()
-			if(ismob(loc))
-				var/mob/M = loc
-				M.unEquip(src, 1)
-			qdel(src)
-			return
-		if(reagents.get_reagent_amount("fuel")) // the fuel explodes, too, but much less violently
-			var/datum/effect_system/reagents_explosion/e = new()
-			e.set_up(round(reagents.get_reagent_amount("fuel") / 5, 1), get_turf(src), 0, 0)
-			e.start()
-			if(ismob(loc))
-				var/mob/M = loc
-				M.unEquip(src, 1)
-			qdel(src)
-			return
-		reagents.set_reacting(TRUE)
-		reagents.handle_reactions()
-		icon_state = icon_on
-		item_state = icon_on
-		if(flavor_text)
-			var/turf/T = get_turf(src)
-			T.visible_message(flavor_text)
-		if(iscarbon(loc))
-			var/mob/living/carbon/C = loc
-			if(C.wear_mask == src) // Don't update if it's just in their hand
-				C.wear_mask_update(src)
-		set_light(2, 0.25, "#E38F46")
-		START_PROCESSING(SSobj, src)
-		playsound(src, 'sound/items/lighter/light.ogg', 25, TRUE)
+		to_chat(user, "<span class='warning'>You cannot light [cig] with [src] because you need a lighter to light [src] before you can use [src] as a lighter to light [cig]... This seems a little convoluted.</span>")
+		return TRUE
 
+	if(target == user)
+		user.visible_message(
+			"<span class='notice'>[user] presses [src] against [cig] until it lights. Seems oddly recursive...</span>",
+			"<span class='notice'>You press [src] against [cig] until it lights. Seems oddly recursive...</span>"
+		)
+	else
+		user.visible_message(
+			"<span class='notice'>[user] presses [src] until it lights. Sharing is caring!</span>",
+			"<span class='notice'>You press [src] against [cig] until it lights. Sharing is caring!</span>"
+		)
+	cig.light(user, target)
+	return TRUE
+
+/obj/item/clothing/mask/cigarette/proc/light(mob/living/user, mob/living/target)
+	if(lit)
+		return
+
+	lit = TRUE
+	attack_verb = list("burnt", "singed")
+	hitsound = 'sound/items/welder.ogg'
+	damtype = BURN
+	force = 4
+	var/mob/M = loc
+
+	// Plasma explodes when exposed to fire.
+	if(reagents.get_reagent_amount("plasma"))
+		var/datum/effect_system/reagents_explosion/e = new()
+		e.set_up(round(reagents.get_reagent_amount("plasma") / 2.5, 1), get_turf(src), 0, 0)
+		e.start()
+		if(ismob(M))
+			M.drop_item_to_ground(src, force = TRUE)
+		qdel(src)
+		return
+
+	// Fuel explodes, too, but much less violently.
+	if(reagents.get_reagent_amount("fuel"))
+		var/datum/effect_system/reagents_explosion/e = new()
+		e.set_up(round(reagents.get_reagent_amount("fuel") / 5, 1), get_turf(src), 0, 0)
+		e.start()
+		if(ismob(M))
+			M.drop_item_to_ground(src, force = TRUE)
+		qdel(src)
+		return
+
+	// If there is no target, the user is probably lighting their own cig.
+	if(isnull(target))
+		target = user
+
+	reagents.set_reacting(TRUE)
+	reagents.handle_reactions()
+	if(iscarbon(loc))
+		var/mob/living/carbon/C = loc
+		if(C.wear_mask == src) // Don't update if it's just in their hand
+			C.wear_mask_update(src)
+	set_light(2, 0.25, "#E38F46")
+	update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
+	START_PROCESSING(SSobj, src)
+	playsound(src, 'sound/items/lighter/light.ogg', 25, TRUE)
+	return TRUE
 
 /obj/item/clothing/mask/cigarette/process()
 	var/mob/living/M = loc
@@ -222,17 +278,10 @@ LIGHTERS ARE IN LIGHTERS.DM
 		return
 	smoke()
 
-
 /obj/item/clothing/mask/cigarette/extinguish_light(force)
 	if(!force)
 		return
 	die()
-
-/obj/item/clothing/mask/cigarette/attack_self(mob/user)
-	if(lit)
-		user.visible_message("<span class='notice'>[user] calmly drops and treads on [src], putting it out instantly.</span>")
-		die()
-	return ..()
 
 /obj/item/clothing/mask/cigarette/proc/smoke()
 	var/turf/location = get_turf(src)
@@ -244,7 +293,7 @@ LIGHTERS ARE IN LIGHTERS.DM
 			// There used to be a species check here, but synthetics can smoke now
 			is_being_smoked = TRUE
 	if(location)
-		location.hotspot_expose(700, 5)
+		location.hotspot_expose(700, 1)
 	if(reagents && reagents.total_volume)	//	check if it has any reagents at all
 		if(is_being_smoked) // if it's being smoked, transfer reagents to the mob
 			var/mob/living/carbon/C = loc
@@ -259,37 +308,102 @@ LIGHTERS ARE IN LIGHTERS.DM
 /obj/item/clothing/mask/cigarette/proc/die()
 	var/turf/T = get_turf(src)
 	set_light(0)
-	var/obj/item/butt = new type_butt(T)
+	var/obj/item/butt = new butt_type(T)
 	transfer_fingerprints_to(butt)
 	if(ismob(loc))
 		var/mob/living/M = loc
 		to_chat(M, "<span class='notice'>Your [name] goes out.</span>")
-		M.unEquip(src, 1)		//Force the un-equip so the overlays update
+		// Only put the butt in the user's mouth if there's already a cig there.
+		if(M.wear_mask == src)
+			M.drop_item_to_ground(src, force = TRUE) //Force the un-equip so the overlays update
+			butt.slot_flags |= ITEM_SLOT_MASK // Temporarily allow it to go on masks
+			M.equip_to_slot_if_possible(butt, ITEM_SLOT_MASK)
+			butt.slot_flags &= ~ITEM_SLOT_MASK
+		else
+			M.drop_item_to_ground(src, force = TRUE)
+
 	STOP_PROCESSING(SSobj, src)
 	qdel(src)
 
 /obj/item/clothing/mask/cigarette/get_heat()
 	return lit * 1000
 
-/obj/item/clothing/mask/cigarette/proc/can_light_fancy(obj/item/lighting_item)
-	return (istype(lighting_item, /obj/item/match) || istype(lighting_item, /obj/item/lighter/zippo))
-
+//////////////////////////////
+// MARK: CIGARETTES
+//////////////////////////////
 /obj/item/clothing/mask/cigarette/menthol
 	list_reagents = list("nicotine" = 40, "menthol" = 20)
 
 /obj/item/clothing/mask/cigarette/random
 
 /obj/item/clothing/mask/cigarette/random/New()
-	list_reagents = list("nicotine" = 40, pick("fuel","saltpetre","synaptizine","green_vomit","potass_iodide","msg","lexorin","mannitol","spaceacillin","cryoxadone","holywater","tea","egg","haloperidol","mutagen","omnizine","carpet","aranesp","cryostylane","chocolate","bilk","cheese","rum","blood","charcoal","coffee","ectoplasm","space_drugs","milk","mutadone","antihol","teporone","insulin","salbutamol","toxin") = 20)
+	list_reagents = list("nicotine" = 40, pick("fuel", "saltpetre", "synaptizine", "green_vomit", "potass_iodide", "msg", "lexorin", "mannitol", \
+	"spaceacillin" ,"cryoxadone" ,"holywater", "tea" ,"egg" ,"haloperidol" ,"mutagen" ,"omnizine", "carpet", "aranesp", "cryostylane", "chocolate", \
+	"bilk", "cheese", "rum", "blood", "charcoal", "coffee", "ectoplasm", "space_drugs", "milk", "mutadone", "antihol", "teporone", "insulin", "salbutamol", "toxin") = 20)
 	..()
 
+/obj/item/clothing/mask/cigarette/candy
+	name = "candy cigarette"
+	desc = "A stick of candy imitating a real cigarette. The words 'do not expose to heat' are written in very small letters around the base."
+
+/obj/item/clothing/mask/cigarette/candy/interact_with_atom(atom/A, mob/living/user, list/modifiers)
+	if(..())
+		return
+
+	if(!ishuman(A))
+		return
+
+	var/mob/living/carbon/human/target = A
+	if(target != user)
+		user.visible_message(
+			"<span_class='notice'>You begin to feed [target] [src].</span>",
+			"<span_class='warning'>[user] begins to feed [target] [src]!</span>"
+		)
+		if(!do_after(user, 5 SECONDS, target = target))
+			return ITEM_INTERACT_COMPLETE
+	
+	else
+		to_chat(user, "<span_class='notice'>You eat [src].</span>")
+		
+	playsound(user.loc, 'sound/items/eatfood.ogg', 50, 0)
+
+	// A SPICY candy!
+	if(lit)
+		target.adjust_nutrition(2)
+		target.reagents.add_reagent("sugar", 2, reagtemp = 373)
+		target.reagents.add_reagent("ash", 3, reagtemp = 373)
+		target.reagents.add_reagent("nicotine", 3, reagtemp = 373)
+		var/obj/item/organ/external/head/target_head = target.get_organ("head")
+		if(target_head.receive_damage(0, 15)) // OH GOD IT BURNS WHY DID I EAT THIS!?
+			target.UpdateDamageIcon()
+			to_chat(target, "<span_class='notice'>You can taste burnt sugar, ash, burning chemicals, and your own burning flesh...</span>")
+			to_chat(target, "<span_class='userdanger'>OH FUCK! IT BURNS!</span>")
+			target.emote("scream")
+		add_attack_logs(user, target, "Fed a burning candy cigarette.")
+	else
+		target.adjust_nutrition(5)
+		target.reagents.add_reagent("sugar", 5)
+		to_chat(target, "<span_class='notice'>You can taste sugar, and a hint of chemicals.</span>")
+
+	qdel(src)
+	return ITEM_INTERACT_COMPLETE
+
 /obj/item/clothing/mask/cigarette/syndicate
+	name = "suspicious cigarette"
+	desc = "An evil-looking cigarette. It smells of donk pockets."
+	icon_state = "syndie_cig"
+	butt_type = /obj/item/cigbutt/syndie
 	list_reagents = list("nicotine" = 40, "omnizine" = 20)
 
 /obj/item/clothing/mask/cigarette/medical_marijuana
-	list_reagents = list("thc" = 20, "cbd" = 40)
+	name = "medical marijuana cigarette"
+	desc = "A cigarette containing specially-bread cannabis that has been engineered to only contain CBD, for medical use. The lack of THC makes it fully legal under Space Law."
+	icon_state = "medical_weed_cig"
+	list_reagents = list("cbd" = 60)
 
 /obj/item/clothing/mask/cigarette/robustgold
+	name = "\improper Robust Gold cigarette"
+	desc = "A premium cigarette smoked by the truly robust, contains real gold."
 	list_reagents = list("nicotine" = 40, "gold" = 1)
 
 /obj/item/clothing/mask/cigarette/shadyjims
@@ -297,85 +411,35 @@ LIGHTERS ARE IN LIGHTERS.DM
 
 /obj/item/clothing/mask/cigarette/rollie
 	name = "rollie"
-	desc = "A roll of dried plant matter wrapped in thin paper."
-	icon_state = "spliffoff"
-	icon_on = "spliffon"
-	icon_off = "spliffoff"
-	type_butt = /obj/item/cigbutt/roach
-	throw_speed = 0.5
-	item_state = "spliffoff"
+	desc = "A roll of dried plant matter wrapped in thin paper. It carries the unmistakable smell of cannabis."
+	icon_state = "spliff"
+	butt_type = /obj/item/cigbutt/roach
 	list_reagents = list("thc" = 40, "cbd" = 20)
 
 /obj/item/clothing/mask/cigarette/rollie/Initialize(mapload)
 	. = ..()
-	pixel_x = rand(-5, 5)
-	pixel_y = rand(-5, 5)
-
+	scatter_atom()
 /obj/item/clothing/mask/cigarette/rollie/custom
+	desc = "A roll of dried plant matter wrapped in thin paper."
 	list_reagents = list()
-
-
-/obj/item/cigbutt/roach
-	name = "roach"
-	desc = "A manky old roach, or for non-stoners, a used rollup."
-	icon_state = "roach"
-
-/obj/item/cigbutt/roach/Initialize(mapload)
-	. = ..()
-	pixel_x = rand(-5, 5)
-	pixel_y = rand(-5, 5)
-
-////////////
-// CIGARS //
-////////////
-
-/obj/item/clothing/mask/cigarette/cigar
-	name = "\improper Premium Cigar"
-	desc = "A brown roll of tobacco and... well, you're not quite sure. This thing's huge!"
-	icon_state = "cigaroff"
-	icon_on = "cigaron"
-	icon_off = "cigaroff"
-	type_butt = /obj/item/cigbutt/cigarbutt
-	throw_speed = 0.5
-	item_state = "cigaroff"
-	smoketime = 300
-	chem_volume = 120
-	list_reagents = list("nicotine" = 120)
-
-/obj/item/clothing/mask/cigarette/cigar/try_light(obj/item/cigar, obj/item/lighting_item)
-	if(can_light_fancy(lighting_item))
-		return ..()
-
-/obj/item/clothing/mask/cigarette/cigar/cohiba
-	name = "\improper Cohiba Robusto Cigar"
-	desc = "There's little more you could want from a cigar."
-	icon_state = "cigar2off"
-	icon_on = "cigar2on"
-	icon_off = "cigar2off"
-
-/obj/item/clothing/mask/cigarette/cigar/havana
-	name = "\improper Premium Havanian Cigar"
-	desc = "A cigar fit for only the best for the best."
-	icon_state = "cigar2off"
-	icon_on = "cigar2on"
-	icon_off = "cigar2off"
-	smoketime = 450
-	chem_volume = 180
-	list_reagents = list("nicotine" = 180)
 
 /obj/item/cigbutt
 	name = "cigarette butt"
 	desc = "A manky old cigarette butt."
-	icon = 'icons/obj/clothing/masks.dmi'
-	icon_state = "cigbutt"
+	icon = 'icons/obj/clothing/smoking.dmi'
+	icon_state = "cig_butt"
 	w_class = WEIGHT_CLASS_TINY
-	throwforce = 1
+	scatter_distance = 10
+
+/obj/item/cigbutt/syndie
+	name = "suspicious cigarette butt"
+	desc = "A manky old cigarette butt with an evil look about it."
+	icon_state = "syndie_cig_butt"
 
 /obj/item/cigbutt/Initialize(mapload)
 	. = ..()
-	pixel_x = rand(-10,10)
-	pixel_y = rand(-10,10)
-	transform = turn(transform,rand(0,360))
+	scatter_atom()
+	transform = turn(transform, rand(0, 360))
 
 /obj/item/cigbutt/decompile_act(obj/item/matter_decompiler/C, mob/user)
 	if(isdrone(user))
@@ -384,27 +448,145 @@ LIGHTERS ARE IN LIGHTERS.DM
 		return TRUE
 	return ..()
 
+/obj/item/cigbutt/roach
+	name = "roach"
+	desc = "A manky old roach, or for non-stoners, a used rollup."
+	icon_state = "roach"
+	scatter_distance = 5
+
+/obj/item/cigbutt/roach/Initialize(mapload)
+	. = ..()
+	scatter_atom()
+
+//////////////////////////////
+// MARK: ROLLING
+//////////////////////////////
+/obj/item/rollingpaper
+	name = "rolling paper"
+	desc = "A thin piece of paper used to make fine smokeables."
+	icon = 'icons/obj/cigarettes.dmi'
+	icon_state = "cig_paper"
+	w_class = WEIGHT_CLASS_TINY
+	new_attack_chain = TRUE
+
+/obj/item/rollingpaper/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(!istype(used, /obj/item/food/grown))
+		return ..()
+
+	var/obj/item/food/grown/plant = used
+	if(!plant.dry)
+		to_chat(user, "<span class='warning'>You need to dry this first!</span>")
+		return ITEM_INTERACT_COMPLETE
+
+	user.unequip(plant, TRUE)
+	user.unequip(src, TRUE)
+	var/obj/item/clothing/mask/cigarette/rollie/custom/custom_rollie = new (get_turf(user))
+	custom_rollie.reagents.maximum_volume = plant.reagents.total_volume
+	plant.reagents.trans_to(custom_rollie, plant.reagents.total_volume)
+	custom_rollie.smoketime = custom_rollie.reagents.total_volume * 2.5
+
+	user.put_in_active_hand(custom_rollie)
+	to_chat(user, "<span class='notice'>You roll the [plant.name] into a rolling paper.</span>")
+	custom_rollie.desc = "Dried [plant.name] rolled up in a thin piece of paper."
+
+	qdel(plant)
+	qdel(src)
+	return ITEM_INTERACT_COMPLETE
+
+//////////////////////////////
+// MARK: CIGARS
+//////////////////////////////
+/obj/item/clothing/mask/cigarette/cigar
+	name = "\improper Nano Cigar"
+	desc = "A huge, brown roll of dried and fermented tobacco, manufactured by Nanotrasen's Robust Tobacco subsidiary."
+	icon_state = "cigar"
+	fancy_lighters = list(/obj/item/match, /obj/item/lighter/zippo)
+	butt_type = /obj/item/cigbutt/cigarbutt
+	smoketime = 300
+	chem_volume = 140
+	list_reagents = list("nicotine" = 120)
+
+/obj/item/clothing/mask/cigarette/cigar/examine_more(mob/user)
+	. = ..()
+	. += "	Don't let the advertising fool you, this thing is a bargain basement, bottom-of-the-barrel product and the smoking experience it offers is little better than an oversized Robust cigarette."
+	. += ""
+	. += "It still makes you look like a mafia boss, however."
+
+/obj/item/clothing/mask/cigarette/cigar/cohiba
+	name = "\improper Cohiba Robusto Cigar"
+	desc = "A premium brand of cigar widely exported and enjoyed across the Orion Sector. There's little more that you could want from a cigar"
+	icon_state = "gold_cigar"
+	butt_type = /obj/item/cigbutt/cigarbutt/gold
+
+/obj/item/clothing/mask/cigarette/cigar/cohiba/examine_more(mob/user)
+	..()
+	. = list()
+	. += "Lovingly machine rolled using carefully selected strains of tobacco grown in massive hydroponics warehouses in orbit around the death world of Venus, Sol. \
+	It goes through a range of carefully selected flavours as it is smoked, providing a novel and enjoyable experience throughout."
+
+/obj/item/clothing/mask/cigarette/cigar/havana
+	name = "\improper Premium Havanian Cigar"
+	desc = "A luxury cigar only fit for the best of the best."
+	icon_state = "gold_cigar"
+	smoketime = 450
+	chem_volume = 200
+	list_reagents = list("nicotine" = 180)
+	butt_type = /obj/item/cigbutt/cigarbutt/gold
+
+/obj/item/clothing/mask/cigarette/cigar/havana/examine_more(mob/user)
+	..()
+	. = list()
+	. += "One of a handful of brands made using tobacco grown in Cuba on Earth, the core of the Trans-Solar Federation. \
+	Each of these hand-rolled cigars is carefully put together by master cigar rollers using various strains of tobacco that has been cultivated for hundreds of years to ensure \
+	the best consistency and flavour possible."
+	. += ""
+	. += "Due to a mixture of limited manufacturing capacity, high quality, brand prestige, and export taxes, \
+	these cigars are too expensive for all but the most wealthy to smoke with any degree of regularity."
+
 /obj/item/cigbutt/cigarbutt
 	name = "cigar butt"
 	desc = "A manky old cigar butt."
-	icon_state = "cigarbutt"
+	icon_state = "cigar_butt"
 
+/obj/item/cigbutt/cigarbutt/gold
+	icon_state = "gold_cigar_butt"
 
-/obj/item/clothing/mask/cigarette/cigar/attackby(obj/item/I, mob/user, params)
-	if(!is_type_in_typecache(I, things_that_light))
-		return
-	if(can_light_fancy(I))
-		..()
-	else
-		to_chat(user, "<span class='notice'>[src] straight out REFUSES to be lit by such uncivilized means.</span>")
-
+//////////////////////////////
+// MARK: HOLO-CIGAR
+//////////////////////////////
 /obj/item/clothing/mask/holo_cigar
-	name = "Holo-Cigar"
+	name = "holo-cigar"
 	desc = "A sleek electronic cigar imported straight from Sol. You feel badass merely glimpsing it..."
-	icon_state = "holocigaroff"
+	icon = 'icons/obj/clothing/smoking.dmi'
+	icon_state = "holo_cigar"
+	lefthand_file = 'icons/mob/inhands/smoking_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/smoking_righthand.dmi'
+	new_attack_chain = TRUE
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/mask.dmi',
+		"Unathi" = 'icons/mob/clothing/species/unathi/mask.dmi',
+		"Tajaran" = 'icons/mob/clothing/species/tajaran/mask.dmi',
+		"Vulpkanin" = 'icons/mob/clothing/species/vulpkanin/mask.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/mask.dmi')
+	/// Is the holo-cigar lit?
 	var/enabled = FALSE
 	/// Tracks if this is the first cycle smoking the cigar.
 	var/has_smoked = FALSE
+
+/obj/item/clothing/mask/holo_cigar/activate_self(mob/user)
+	if(..())
+		return
+
+	if(enabled)
+		enabled = FALSE
+		to_chat(user, "<span class='notice'>You disable the holo-cigar.</span>")
+		STOP_PROCESSING(SSobj, src)
+	else
+		enabled = TRUE
+		to_chat(user, "<span class='notice'>You enable the holo-cigar.</span>")
+		START_PROCESSING(SSobj, src)
+
+	update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
 
 /obj/item/clothing/mask/holo_cigar/Destroy()
 	. = ..()
@@ -412,7 +594,11 @@ LIGHTERS ARE IN LIGHTERS.DM
 
 /obj/item/clothing/mask/holo_cigar/update_icon_state()
 	. = ..()
-	icon_state = "holocigar[enabled ? "on" : "off"]"
+	icon_state = "holo_cigar[enabled ? "_on" : ""]"
+
+/obj/item/clothing/mask/holo_cigar/update_name()
+	. = ..()
+	name = "[enabled ? "active " : ""]holo-cigar"
 
 /obj/item/clothing/mask/holo_cigar/examine(mob/user)
 	. = ..()
@@ -437,7 +623,7 @@ LIGHTERS ARE IN LIGHTERS.DM
 
 /obj/item/clothing/mask/holo_cigar/equipped(mob/user, slot, initial)
 	. = ..()
-	if(enabled && slot == SLOT_HUD_WEAR_MASK)
+	if(enabled && slot == ITEM_SLOT_MASK)
 		if(!HAS_TRAIT_FROM(user, TRAIT_BADASS, HOLO_CIGAR))
 			ADD_TRAIT(user, TRAIT_BADASS, HOLO_CIGAR)
 			to_chat(user, "<span class='notice'>You feel more badass while smoking [src].</span>")
@@ -449,46 +635,49 @@ LIGHTERS ARE IN LIGHTERS.DM
 		REMOVE_TRAIT(user, TRAIT_BADASS, HOLO_CIGAR)
 		to_chat(user, "<span class='notice'>You feel less badass.</span>")
 
-/obj/item/clothing/mask/holo_cigar/attack_self(mob/user)
-	. = ..()
-	if(enabled)
-		enabled = FALSE
-		to_chat(user, "<span class='notice'>You disable the holo-cigar.</span>")
-		STOP_PROCESSING(SSobj, src)
-	else
-		enabled = TRUE
-		to_chat(user, "<span class='notice'>You enable the holo-cigar.</span>")
-		START_PROCESSING(SSobj, src)
-
-	update_appearance(UPDATE_ICON_STATE)
-
-/////////////////
-//SMOKING PIPES//
-/////////////////
-
+//////////////////////////////
+// MARK: PIPES
+//////////////////////////////
 /obj/item/clothing/mask/cigarette/pipe
 	name = "smoking pipe"
-	desc = "A pipe, for smoking. Probably made of meershaum or something."
-	icon_state = "pipeoff"
-	item_state = "pipeoff"
-	icon_on = "pipeon"  //Note - these are in masks.dmi
-	icon_off = "pipeoff"
+	desc = "A fancy smoking pipe carved from polished morta, otherwise known as bog wood. Preferred by sophisticated gentlemen and those posing as sophisticated gentlemen."
+	icon_state = "pipe"
+	fancy_lighters = list(/obj/item/match, /obj/item/lighter/zippo)
 	smoketime = 500
-	chem_volume = 200
+	chem_volume = 220
 	list_reagents = list("nicotine" = 200)
 
-/obj/item/clothing/mask/cigarette/pipe/die()
-	return
+/obj/item/clothing/mask/cigarette/pipe/activate_self(mob/user)
+	if(..())
+		return
 
-/obj/item/clothing/mask/cigarette/pipe/light(flavor_text = null)
+	if(lit)
+		extinguish_cigarette(user)
+
+/obj/item/clothing/mask/cigarette/pipe/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(!istype(used, /obj/item/food/grown))
+		return ..()
+
+	var/obj/item/food/grown/filler = used
+	if(!filler.dry)
+		to_chat(user, "<span class='warning'>You need to dry this first!</span>")
+		return ITEM_INTERACT_COMPLETE
+
+	if(reagents.total_volume == reagents.maximum_volume)
+		to_chat(user, "<span class='warning'>[src] is full!</span>")
+		return ITEM_INTERACT_COMPLETE
+
+	filler.reagents.trans_to(src, chem_volume)
+	to_chat(user, "<span class='notice'>You stuff the [filler.name] into the pipe.</span>")
+	smoketime = max(reagents.total_volume * REAGENT_TIME_RATIO, smoketime)
+	qdel(filler)
+	return ITEM_INTERACT_COMPLETE
+
+/obj/item/clothing/mask/cigarette/pipe/light()
 	if(!lit)
 		lit = TRUE
 		damtype = "fire"
-		icon_state = icon_on
-		item_state = icon_on
-		if(flavor_text)
-			var/turf/T = get_turf(src)
-			T.visible_message(flavor_text)
+		update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
 		START_PROCESSING(SSobj, src)
 
 /obj/item/clothing/mask/cigarette/pipe/process()
@@ -500,94 +689,31 @@ LIGHTERS ARE IN LIGHTERS.DM
 			var/mob/living/M = loc
 			to_chat(M, "<span class='notice'>Your [name] goes out, and you empty the ash.</span>")
 			lit = FALSE
-			icon_state = icon_off
-			item_state = icon_off
-			M.update_inv_wear_mask()
+		update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
 		STOP_PROCESSING(SSobj, src)
 		return
+
 	smoke()
 
-/obj/item/clothing/mask/cigarette/pipe/attack_self(mob/user) // Extinguishes the pipe.
-	if(lit)
-		user.visible_message("<span class='notice'>[user] puts out [src].</span>")
-		lit = FALSE
-		icon_state = icon_off
-		item_state = icon_off
-		STOP_PROCESSING(SSobj, src)
-		return
+/obj/item/clothing/mask/cigarette/pipe/extinguish_cigarette(mob/user)
+	user.visible_message(
+		"<span class='notice'>[user] puts out [src].</span>",
+		"<span class='notice'>You put out [src].</span>"
+	)
+	lit = FALSE
+	first_puff = TRUE
+	update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
+	STOP_PROCESSING(SSobj, src)
 
-/obj/item/clothing/mask/cigarette/pipe/try_light(obj/item/cigar, obj/item/lighting_item)
-	if(can_light_fancy(lighting_item))
-		return ..()
-
-// Refill or light the pipe
-/obj/item/clothing/mask/cigarette/pipe/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/food/snacks/grown))
-		var/obj/item/food/snacks/grown/O = I
-		if(O.dry)
-			if(reagents.total_volume == reagents.maximum_volume)
-				to_chat(user, "<span class='warning'>[src] is full!</span>")
-				return
-			O.reagents.trans_to(src, chem_volume)
-			to_chat(user, "<span class='notice'>You stuff the [O.name] into the pipe.</span>")
-			smoketime = max(reagents.total_volume * REAGENT_TIME_RATIO, smoketime)
-			qdel(O)
-		else
-			to_chat(user, "<span class='warning'>You need to dry this first!</span>")
-		return
-
-	if(!is_type_in_typecache(I, things_that_light))
-		return
-	if(can_light_fancy(I))
-		..()
-	else
-		to_chat(user, "<span class='notice'>[src] straight out REFUSES to be lit by such means.</span>")
+/obj/item/clothing/mask/cigarette/pipe/die()
+	return
 
 /obj/item/clothing/mask/cigarette/pipe/cobpipe
 	name = "corn cob pipe"
 	desc = "A nicotine delivery system popularized by folksy backwoodsmen and kept popular in the modern age and beyond by space hipsters."
-	icon_state = "cobpipeoff"
-	item_state = "cobpipeoff"
-	icon_on = "cobpipeon"  //Note - these are in masks.dmi
-	icon_off = "cobpipeoff"
+	icon_state = "cob_pipe"
 	smoketime = 0 //there is nothing to smoke initially
 	chem_volume = 160
 	list_reagents = list()
-
-///////////
-//ROLLING//
-///////////
-
-/obj/item/rollingpaper
-	name = "rolling paper"
-	desc = "A thin piece of paper used to make fine smokeables."
-	icon = 'icons/obj/cigarettes.dmi'
-	icon_state = "cig_paper"
-	w_class = WEIGHT_CLASS_TINY
-
-/obj/item/rollingpaper/afterattack(atom/target, mob/user, proximity)
-	if(!proximity)
-		return
-	if(!istype(target, /obj/item/food/snacks/grown))
-		return ..()
-
-	var/obj/item/food/snacks/grown/plant = target
-	if(!plant.dry)
-		to_chat(user, "<span class='warning'>You need to dry this first!</span>")
-		return
-
-	user.unEquip(plant, TRUE)
-	user.unEquip(src, TRUE)
-	var/obj/item/clothing/mask/cigarette/rollie/custom/custom_rollie = new (get_turf(user))
-	custom_rollie.reagents.maximum_volume = plant.reagents.total_volume
-	plant.reagents.trans_to(custom_rollie, plant.reagents.total_volume)
-	custom_rollie.smoketime = custom_rollie.reagents.total_volume * 2.5
-
-	user.put_in_active_hand(custom_rollie)
-	to_chat(user, "<span class='notice'>You roll the [plant.name] into a rolling paper.</span>")
-	custom_rollie.desc = "Dried [plant.name] rolled up in a thin piece of paper."
-
-	qdel(plant)
-	qdel(src)
 
 #undef REAGENT_TIME_RATIO

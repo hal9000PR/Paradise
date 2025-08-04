@@ -50,7 +50,8 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 		/datum/job/nanotrasenrep,
 		/datum/job/chaplain,
 		/datum/job/officer,
-		/datum/job/qm
+		/datum/job/qm,
+		/datum/job/nanotrasentrainer
 )
 
 	//The scaling factor of max total positions in relation to the total amount of people on board the station in %
@@ -151,23 +152,28 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 	else
 		to_chat(user, "There is nothing to remove from the console.")
 
-/obj/machinery/computer/card/attackby(obj/item/card/id/id_card, mob/user, params)
+/obj/machinery/computer/card/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	var/obj/item/card/id/id_card = used
 	if(!istype(id_card))
+		return ..()
+	if(istype(id_card, /obj/item/card/id/nct_data_chip))
 		return ..()
 
 	if(!scan && check_access(id_card))
 		user.drop_item()
 		id_card.forceMove(src)
 		scan = id_card
-		playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, 0)
+		playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, FALSE)
 	else if(!modify)
 		user.drop_item()
 		id_card.forceMove(src)
 		modify = id_card
-		playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, 0)
+		playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, FALSE)
 
 	SStgui.update_uis(src)
 	attack_hand(user)
+
+	return ITEM_INTERACT_COMPLETE
 
 //Check if you can't touch a job in any way whatsoever
 /obj/machinery/computer/card/proc/job_blacklisted_full(datum/job/job)
@@ -425,14 +431,18 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 			else if(Adjacent(usr))
 				var/obj/item/I = usr.get_active_hand()
 				if(istype(I, /obj/item/card/id))
+					if(istype(I, /obj/item/card/id/nct_data_chip))
+						playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, FALSE)
+						to_chat(usr, "<span class='warning'>The data chip doesn't fit!</span>")
+						return FALSE
 					if(!check_access(I))
-						playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, 0)
+						playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, FALSE)
 						to_chat(usr, "<span class='warning'>This card does not have access.</span>")
 						return FALSE
 					usr.drop_item()
 					I.forceMove(src)
 					scan = I
-					playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, 0)
+					playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, FALSE)
 			return
 		if("modify") // inserting or removing the ID you plan to modify
 			if(modify)
@@ -451,6 +461,10 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 			else if(Adjacent(usr))
 				var/obj/item/I = usr.get_active_hand()
 				if(istype(I, /obj/item/card/id))
+					if(istype(I, /obj/item/card/id/nct_data_chip))
+						playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, FALSE)
+						to_chat(usr, "<span class='warning'>The data chip doesn't fit!</span>")
+						return FALSE
 					usr.drop_item()
 					I.forceMove(src)
 					modify = I
@@ -495,10 +509,10 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 					SSjobs.notify_dept_head(modify.rank, "[scan.registered_name] has transferred \"[modify.registered_name]\" the \"[oldrank]\" to \"[temp_t]\".")
 			else
 				var/list/access = list()
+				var/datum/job/jobdatum
 				if(is_centcom() && islist(get_centcom_access(t1)))
 					access = get_centcom_access(t1)
 				else
-					var/datum/job/jobdatum
 					for(var/jobtype in typesof(/datum/job))
 						var/datum/job/J = new jobtype
 						if(ckey(J.title) == ckey(t1))
@@ -520,6 +534,9 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 				SSjobs.notify_dept_head(t1, "[scan.registered_name] has transferred \"[modify.registered_name]\" the \"[jobnamedata]\" to \"[t1]\".")
 				if(modify.owner_uid)
 					SSjobs.slot_job_transfer(modify.rank, t1)
+				var/datum/money_account/account = modify.get_card_account()
+				if(account && jobdatum)
+					account.payday_amount = jobdatum.standard_paycheck
 
 				var/mob/living/carbon/human/H = modify.getPlayer()
 				if(istype(H))
@@ -532,6 +549,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 				modify.rank = t1
 				modify.assignment = t1
 			regenerate_id_name()
+			modify.RebuildHTML()
 			return
 		if("demote")
 			if(modify.assignment == "Demoted")
@@ -558,10 +576,15 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 			modify.lastlog = "[station_time_timestamp()]: DEMOTED by \"[scan.registered_name]\" ([scan.assignment]) from \"[jobnamedata]\" for: \"[reason]\"."
 			SSjobs.notify_dept_head(modify.rank, "[scan.registered_name] ([scan.assignment]) has demoted \"[modify.registered_name]\" ([jobnamedata]) for \"[reason]\".")
 			SSjobs.slot_job_transfer(modify.rank, "Assistant")
+			var/datum/money_account/account = modify.get_card_account()
+			if(account)
+				account.payday_amount = jobdatum.standard_paycheck
 			modify.access = access
 			modify.assignment = "Demoted"
 			modify.icon_state = "id"
+			modify.rank = "Assistant"
 			regenerate_id_name()
+			modify.RebuildHTML()
 			return
 		if("terminate")
 			if(!has_idchange_access()) // because captain/HOP can use this even on dept consoles
@@ -583,9 +606,14 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 			var/datum/job/job = SSjobs.GetJob(modify.rank)
 			if(modify.assignment != "Demoted" && !(job.title in GLOB.command_positions))
 				job.current_positions--
+			var/datum/money_account/account = modify.get_card_account()
+			if(account)
+				account.payday_amount = 0
 			modify.assignment = "Terminated"
 			modify.access = list()
+			modify.rank = "Terminated"
 			regenerate_id_name()
+			modify.RebuildHTML()
 			return
 		if("make_job_available") // MAKE ANOTHER JOB POSITION AVAILABLE FOR LATE JOINERS
 			var/edit_job_target = params["job"]
@@ -714,7 +742,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 			modify.access = list()
 			return
 		if("grant_all")
-			modify.access = get_all_accesses()
+			modify.access |= get_all_accesses()
 			return
 
 		// JOB SLOT MANAGEMENT functions

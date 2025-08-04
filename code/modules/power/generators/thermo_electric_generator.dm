@@ -4,7 +4,6 @@
 	icon_state = "teg"
 	anchored = FALSE
 	density = TRUE
-	power_state = NO_POWER_USE
 
 	var/obj/machinery/atmospherics/binary/circulator/cold_circ
 	var/obj/machinery/atmospherics/binary/circulator/hot_circ
@@ -39,10 +38,6 @@
 		hot_circ.generator = null
 	if(powernet)
 		disconnect_from_network()
-
-/obj/machinery/power/teg/Initialize()
-	. = ..()
-	connect()
 
 /obj/machinery/power/teg/proc/connect()
 	connect_to_network()

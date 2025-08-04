@@ -38,14 +38,11 @@
 	attack_sound = 'sound/weapons/bite.ogg'
 
 	speed = 0
-	stop_automated_movement = FALSE
 	turns_per_move = 4
 
 	var/list/donors = list()
 	holder_type = /obj/item/holder/diona
-	can_collar = TRUE
 
-	a_intent = INTENT_HELP
 	var/evolve_donors = 5 //amount of blood donors needed before evolving
 	var/awareness_donors = 3 //amount of blood donors needed for understand language
 	var/nutrition_need = 500 //amount of nutrition needed before evolving
@@ -54,10 +51,14 @@
 	var/datum/action/innate/diona/evolve/evolve_action = new()
 	var/datum/action/innate/diona/steal_blood/steal_blood_action = new()
 
+/mob/living/simple_animal/diona/Initialize(mapload)
+	. = ..()
+	AddElement(/datum/element/wears_collar)
+
 /datum/action/innate/diona/merge
 	name = "Merge with gestalt"
-	button_overlay_icon = 'icons/mob/human_races/r_diona.dmi'
-	button_overlay_icon_state = "preview"
+	button_icon = 'icons/mob/human_races/r_diona.dmi'
+	button_icon_state = "preview"
 
 /datum/action/innate/diona/merge/Activate()
 	var/mob/living/simple_animal/diona/user = owner
@@ -65,8 +66,8 @@
 
 /datum/action/innate/diona/evolve
 	name = "Evolve"
-	button_overlay_icon = 'icons/obj/cloning.dmi'
-	button_overlay_icon_state = "pod_cloning"
+	button_icon = 'icons/obj/cloning.dmi'
+	button_icon_state = "pod_cloning"
 
 /datum/action/innate/diona/evolve/Activate()
 	var/mob/living/simple_animal/diona/user = owner
@@ -74,15 +75,16 @@
 
 /datum/action/innate/diona/steal_blood
 	name = "Steal blood"
-	button_overlay_icon = 'icons/goonstation/objects/iv.dmi'
-	button_overlay_icon_state = "bloodbag"
+	button_icon = 'icons/goonstation/objects/iv.dmi'
+	button_icon_state = "bloodbag"
 
 /datum/action/innate/diona/steal_blood/Activate()
 	var/mob/living/simple_animal/diona/user = owner
 	user.steal_blood()
 
-/mob/living/simple_animal/diona/New()
-	..()
+/mob/living/simple_animal/diona/Initialize(mapload)
+	. = ..()
+
 	if(name == initial(name)) //To stop Pun-Pun becoming generic.
 		name = "[name] ([rand(1, 1000)])"
 		real_name = name
@@ -205,15 +207,17 @@
 	adult.real_name = adult.name
 	adult.ckey = ckey
 	adult.real_name = adult.dna.species.get_random_name()	//I hate this being here of all places but unfortunately dna is based on real_name!
+	// [Nymph -> Diona] is from xenobio (or botany) and does not give vampires usuble blood and cannot be converted by cult.
+	ADD_TRAIT(adult.mind, TRAIT_XENOBIO_SPAWNED_HUMAN, ROUNDSTART_TRAIT)
 
 	for(var/obj/item/W in contents)
-		unEquip(W)
+		drop_item_to_ground(W)
 
 	qdel(src)
 	return TRUE
 
 // Consumes plant matter other than weeds to evolve
-/mob/living/simple_animal/diona/proc/consume(obj/item/food/snacks/grown/G)
+/mob/living/simple_animal/diona/proc/consume(obj/item/food/grown/G)
 	if(nutrition >= nutrition_need) // Prevents griefing by overeating plant items without evolving.
 		to_chat(src, "<span class='warning'>You're too full to consume this! Perhaps it's time to grow bigger...</span>")
 	else

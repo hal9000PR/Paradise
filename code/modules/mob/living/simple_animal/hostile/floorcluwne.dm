@@ -15,7 +15,6 @@
 	maxHealth = 200
 	health = 200
 	speed = -1
-	attacktext = "attacks"
 	anchored = TRUE
 	attack_sound = 'sound/items/bikehorn.ogg'
 	del_on_death = TRUE
@@ -49,7 +48,7 @@
 	remove_from_all_data_huds()
 	var/obj/item/card/id/access_card = new (src)
 	access_card.access = get_all_accesses()//THERE IS NO ESCAPE
-	access_card.flags |= NODROP
+	access_card.set_nodrop(TRUE)
 	invalid_area_typecache = typecacheof(invalid_area_typecache)
 	Manifest()
 	if(!current_victim)
@@ -69,7 +68,7 @@
 	playsound(src.loc, 'sound/items/bikehorn.ogg', 50, 1)
 
 
-/mob/living/simple_animal/hostile/floor_cluwne/CanPass(atom/A, turf/target)
+/mob/living/simple_animal/hostile/floor_cluwne/CanPass(atom/A, border_dir)
 	return TRUE
 
 
@@ -316,7 +315,7 @@
 					if(T.density)
 						forceMove(H.loc)
 					if(H.buckled)
-						H.buckled.unbuckle_mob(H, force = TRUE)
+						H.unbuckle(force = TRUE)
 				manifested = TRUE
 				Manifest()
 				to_chat(H, "<span class='userdanger'>You feel the floor closing in on your feet!</span>")

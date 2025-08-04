@@ -7,10 +7,8 @@ GLOBAL_LIST_EMPTY(gas_meters)
 	icon_state = "meterX"
 	layer = GAS_PIPE_VISIBLE_LAYER + GAS_PUMP_OFFSET
 	layer_offset = GAS_PUMP_OFFSET
-	anchored = TRUE
 	max_integrity = 150
 	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 100, BOMB = 0, RAD = 100, FIRE = 40, ACID = 0)
-	power_channel = PW_CHANNEL_ENVIRONMENT
 	power_state = IDLE_POWER_USE
 	idle_power_consumption = 2
 	active_power_consumption = 5
@@ -61,7 +59,7 @@ GLOBAL_LIST_EMPTY(gas_meters)
 /obj/machinery/atmospherics/meter/examine(mob/user)
 	. = ..()
 	. += "<span class='notice'>Measures the volume and temperature of the pipe under the meter.</span>"
-	if(get_dist(user, src) > 3 && !(isAI(user) || istype(user, /mob/dead)))
+	if(get_dist(user, src) > 3 && !(is_ai(user) || istype(user, /mob/dead)))
 		. += "<span class='boldnotice'>You are too far away to read it.</span>"
 
 	else if(stat & (NOPOWER|BROKEN))
@@ -77,23 +75,25 @@ GLOBAL_LIST_EMPTY(gas_meters)
 		. += "The connect error light is blinking."
 
 /obj/machinery/atmospherics/meter/Click()
-	if(isAI(usr)) // ghosts can call ..() for examine
+	if(is_ai(usr)) // ghosts can call ..() for examine
 		usr.examinate(src)
 		return TRUE
 
 	return ..()
 
-/obj/machinery/atmospherics/meter/attackby(obj/item/W as obj, mob/user as mob, params)
-	if(!iswrench(W))
-		return ..()
-	playsound(loc, W.usesound, 50, 1)
-	to_chat(user, "<span class='notice'>You begin to unfasten \the [src]...</span>")
-	if(do_after(user, 40 * W.toolspeed, target = src))
-		user.visible_message( \
-			"[user] unfastens \the [src].", \
-			"<span class='notice'>You have unfastened \the [src].</span>", \
-			"You hear ratchet.")
-		deconstruct(TRUE)
+/obj/machinery/atmospherics/meter/wrench_act(mob/living/user, obj/item/wrench/W)
+	// don't call parent here, we're kind of different
+	to_chat(user, "<span class='notice'>You begin to unfasten [src]...</span>")
+	if(!W.use_tool(src, user, volume = W.tool_volume))
+		return
+
+	user.visible_message(
+		"[user] unfastens [src].",
+		"<span class='notice'>You have unfastened [src].</span>",
+		"You hear ratchet."
+	)
+	deconstruct(TRUE)
+	return TRUE
 
 /obj/machinery/atmospherics/meter/deconstruct(disassembled = TRUE)
 	if(!(flags & NODECONSTRUCT))

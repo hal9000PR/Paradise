@@ -10,7 +10,6 @@
 	turns_per_move = 3
 	death_sound = 'sound/creatures/piratedeath.ogg'
 	response_help = "pushes the"
-	response_disarm = "shoves"
 	response_harm = "slashes"
 	speed = 0
 	maxHealth = 100
@@ -49,7 +48,7 @@
 			/obj/effect/gibspawner/generic,
 			/obj/effect/gibspawner/generic)
 
-/mob/living/simple_animal/hostile/pirate/Process_Spacemove(movement_dir = 0)
+/mob/living/simple_animal/hostile/pirate/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
 	return TRUE
 
 /mob/living/simple_animal/hostile/pirate/ListTargetsLazy()
@@ -64,7 +63,6 @@
 	name = "Pirate Gunner"
 	icon_state = "piratespaceranged"
 	icon_living = "piratespaceranged"
-	icon_dead = "piratemelee_dead" // Does not actually exist. del_on_death.
 	projectilesound = 'sound/weapons/laser.ogg'
 	ranged = TRUE
 	rapid = 2

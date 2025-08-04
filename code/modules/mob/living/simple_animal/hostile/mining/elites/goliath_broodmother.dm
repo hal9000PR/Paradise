@@ -18,7 +18,7 @@
 
 /mob/living/simple_animal/hostile/asteroid/elite/broodmother
 	name = "goliath broodmother"
-	desc = "An example of sexual dimorphism, this female goliath looks much different than the males of her species.  She is, however, just as dangerous, if not more."
+	desc = "An example of sexual dimorphism, this female goliath looks much different than the males of her species. She is, however, just as dangerous, if not more."
 	gender = FEMALE
 	icon_state = "broodmother"
 	icon_living = "broodmother"
@@ -36,9 +36,11 @@
 	speed = 2
 	move_to_delay = 5
 	mob_biotypes = MOB_ORGANIC|MOB_BEAST
-	mouse_opacity = MOUSE_OPACITY_ICON
 	deathmessage = "explodes into gore!"
 	loot_drop = /obj/item/crusher_trophy/broodmother_tongue
+	contains_xeno_organ = TRUE
+	ignore_generic_organs = TRUE
+	surgery_container = /datum/xenobiology_surgery_container/goliath
 
 	attack_action_types = list(/datum/action/innate/elite_attack/tentacle_patch,
 								/datum/action/innate/elite_attack/spawn_children,
@@ -50,25 +52,25 @@
 
 /datum/action/innate/elite_attack/tentacle_patch
 	name = "Tentacle Patch"
-	button_overlay_icon_state = "tentacle_patch"
+	button_icon_state = "tentacle_patch"
 	chosen_message = "<span class='boldwarning'>You are now attacking with a patch of tentacles.</span>"
 	chosen_attack_num = TENTACLE_PATCH
 
 /datum/action/innate/elite_attack/spawn_children
 	name = "Spawn Children"
-	button_overlay_icon_state = "spawn_children"
+	button_icon_state = "spawn_children"
 	chosen_message = "<span class='boldwarning'>You will spawn two children at your location to assist you in combat.  You can have up to 8.</span>"
 	chosen_attack_num = SPAWN_CHILDREN
 
 /datum/action/innate/elite_attack/rage
 	name = "Rage"
-	button_overlay_icon_state = "rage"
+	button_icon_state = "rage"
 	chosen_message = "<span class='boldwarning'>You will temporarily increase your movement speed.</span>"
 	chosen_attack_num = RAGE
 
 /datum/action/innate/elite_attack/call_children
 	name = "Call Children"
-	button_overlay_icon_state = "call_children"
+	button_icon_state = "call_children"
 	chosen_message = "<span class='boldwarning'>You will summon your children to your location.</span>"
 	chosen_attack_num = CALL_CHILDREN
 
@@ -165,7 +167,7 @@
 //The goliath's children.  Pretty weak, simple mobs which are able to put a single tentacle under their target when at range.
 /mob/living/simple_animal/hostile/asteroid/elite/broodmother_child
 	name = "baby goliath"
-	desc = "A young goliath recently born from it's mother.  While they hatch from eggs, said eggs are incubated in the mother until they are ready to be born."
+	desc = "A young goliath recently born from it's mother. While they hatch from eggs, said eggs are incubated in the mother until they are ready to be born."
 	icon = 'icons/mob/lavaland/lavaland_monsters.dmi'
 	icon_state = "goliath_baby"
 	icon_living = "goliath_baby"
@@ -183,7 +185,6 @@
 	speed = 2
 	move_to_delay = 5
 	mob_biotypes = MOB_ORGANIC|MOB_BEAST
-	mouse_opacity = MOUSE_OPACITY_ICON
 	deathmessage = "falls to the ground."
 	status_flags = CANPUSH
 	var/mob/living/simple_animal/hostile/asteroid/elite/broodmother/mother = null
@@ -209,7 +210,7 @@
 	if(!QDELETED(mother))
 		mother.children_list -= src
 	visible_message("<span class='warning'>[src] explodes!</span>")
-	explosion(src, flame_range = 3, adminlog = FALSE)
+	explosion(src, flame_range = 3, adminlog = FALSE, cause = "[name] death")
 	new /obj/item/stack/sheet/animalhide/goliath_hide(loc)
 	new /obj/effect/gibspawner/human(get_turf(src))
 	qdel(src)
@@ -263,7 +264,7 @@
 	if(prob(bonus_value) && target.stat != DEAD)
 		new /obj/effect/temp_visual/goliath_tentacle/broodmother/patch(get_turf(target), user)
 
-/obj/item/crusher_trophy/broodmother_tongue/attack_self(mob/user)
+/obj/item/crusher_trophy/broodmother_tongue/attack_self__legacy__attackchain(mob/user)
 	if(!isliving(user))
 		return
 	var/mob/living/living_user = user

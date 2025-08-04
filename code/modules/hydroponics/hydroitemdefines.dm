@@ -6,7 +6,7 @@
 	icon_state = "hydro"
 	item_state = "analyzer"
 	w_class = WEIGHT_CLASS_TINY
-	slot_flags = SLOT_FLAG_BELT
+	slot_flags = ITEM_SLOT_BELT
 	origin_tech = "magnets=2;biotech=2"
 	materials = list(MAT_METAL = 210, MAT_GLASS = 40)
 
@@ -41,11 +41,6 @@
 	item_state = "plantbgone"
 	belt_icon = null
 	volume = 100
-	container_type = OPENCONTAINER
-	slot_flags = SLOT_FLAG_BELT
-	throwforce = 0
-	w_class = WEIGHT_CLASS_SMALL
-	throw_speed = 3
 	throw_range = 10
 	list_reagents = list("atrazine" = 100)
 
@@ -62,11 +57,6 @@
 	item_state = "plantbgone"
 	belt_icon = null
 	volume = 100
-	container_type = OPENCONTAINER
-	slot_flags = SLOT_FLAG_BELT
-	throwforce = 0
-	w_class = WEIGHT_CLASS_SMALL
-	throw_speed = 3
 	throw_range = 10
 	list_reagents = list("pestkiller" = 100)
 
@@ -144,12 +134,11 @@
 	icon_state = "scythe0"
 	force = 13
 	throwforce = 5
-	throw_speed = 2
 	throw_range = 3
 	w_class = WEIGHT_CLASS_BULKY
 	flags = CONDUCT
 	armour_penetration_flat = 20
-	slot_flags = SLOT_FLAG_BACK
+	slot_flags = ITEM_SLOT_BACK
 	origin_tech = "materials=3;combat=2"
 	attack_verb = list("chopped", "sliced", "cut", "reaped")
 	hitsound = 'sound/weapons/bladeslice.ogg'
@@ -199,16 +188,16 @@
 	sharp = FALSE
 	w_class = WEIGHT_CLASS_SMALL
 	extend = FALSE
-	slot_flags = SLOT_FLAG_BELT
+	slot_flags = ITEM_SLOT_BELT
 	origin_tech = "materials=3;combat=3"
 	attack_verb = list("hit", "poked")
 	hitsound = "swing_hit"
 
-/obj/item/scythe/tele/attack_self(mob/user)
+/obj/item/scythe/tele/attack_self__legacy__attackchain(mob/user)
 	extend = !extend
 	if(extend)
 		to_chat(user, "<span class='warning'>With a flick of your wrist, you extend the scythe. It's reaping time!</span>")
-		slot_flags = SLOT_FLAG_BACK	//won't fit on belt, but can be worn on belt when extended
+		slot_flags = ITEM_SLOT_BACK	//won't fit on belt, but can be worn on belt when extended
 		w_class = WEIGHT_CLASS_BULKY		//won't fit in backpacks while extended
 		force = 15		//slightly better than normal scythe damage
 		attack_verb = list("chopped", "sliced", "cut", "reaped")
@@ -217,7 +206,7 @@
 		playsound(src.loc, 'sound/weapons/blade_unsheath.ogg', 50, 1)	//Sound credit to Qat of Freesound.org
 	else
 		to_chat(user, "<span class='notice'>You collapse the scythe, folding it away for easy storage.</span>")
-		slot_flags = SLOT_FLAG_BELT	//can be worn on belt again, but no longer makes sense to wear on the back
+		slot_flags = ITEM_SLOT_BELT	//can be worn on belt again, but no longer makes sense to wear on the back
 		w_class = WEIGHT_CLASS_SMALL
 		force = 3
 		attack_verb = list("hit", "poked")
@@ -248,13 +237,9 @@
 /obj/item/reagent_containers/glass/bottle/nutrient
 	name = "jug of nutrient"
 	desc = "A decent sized plastic jug."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug"
 	item_state = "plastic_jug"
-	w_class = WEIGHT_CLASS_TINY
-	amount_per_transfer_from_this = 10
 	possible_transfer_amounts = list(1,2,5,10,20,40,80)
-	container_type = OPENCONTAINER
 	volume = 80
 	hitsound = 'sound/weapons/jug_empty_impact.ogg'
 	mob_throw_hit_sound = 'sound/weapons/jug_empty_impact.ogg'
@@ -307,7 +292,6 @@
 /obj/item/reagent_containers/glass/bottle/nutrient/ez
 	name = "jug of E-Z-Nutrient"
 	desc = "Contains a basic fertilizer with no special traits."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_ez"
 	list_reagents = list("eznutrient" = 80)
 
@@ -320,41 +304,32 @@
 /obj/item/reagent_containers/glass/bottle/nutrient/l4z
 	name = "jug of Left 4 Zed"
 	desc = "Contains a fertilizer that limits plant yields to no more than one and causes significant mutations in plants."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_l4z"
 	list_reagents = list("left4zednutrient" = 80)
 
 /obj/item/reagent_containers/glass/bottle/nutrient/rh
 	name = "jug of Robust Harvest"
 	desc = "Contains a fertilizer that increases the yield of a plant by 30% while causing no mutations."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_rh"
 	list_reagents = list("robustharvestnutrient" = 80)
 
 /obj/item/reagent_containers/glass/bottle/nutrient/empty
-	icon = 'icons/obj/chemical.dmi'
-	icon_state = "plastic_jug"
 
 /obj/item/reagent_containers/glass/bottle/nutrient/killer
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_k"
-	w_class = WEIGHT_CLASS_TINY
 
 /obj/item/reagent_containers/glass/bottle/nutrient/killer/Initialize(mapload)
 	. = ..()
-	pixel_x = rand(-5, 5)
-	pixel_y = rand(-5, 5)
+	scatter_atom()
 
 /obj/item/reagent_containers/glass/bottle/nutrient/killer/weedkiller
 	name = "jug of weed killer"
 	desc = "Contains a herbicide."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_wk"
 	list_reagents = list("atrazine" = 80)
 
 /obj/item/reagent_containers/glass/bottle/nutrient/killer/pestkiller
 	name = "jug of pest spray"
 	desc = "Contains a pesticide."
-	icon = 'icons/obj/chemical.dmi'
 	icon_state = "plastic_jug_pk"
 	list_reagents = list("pestkiller" = 80)

@@ -6,7 +6,6 @@
 	flags = AIRTIGHT
 	flags_cover = MASKCOVERSMOUTH
 	can_toggle = TRUE
-	w_class = WEIGHT_CLASS_SMALL
 	gas_transfer_coefficient = 0.10
 	permeability_coefficient = 0.50
 	actions_types = list(/datum/action/item_action/adjust)
@@ -21,7 +20,7 @@
 		"Plasmaman" = 'icons/mob/clothing/species/plasmaman/mask.dmi'
 		)
 
-/obj/item/clothing/mask/breath/attack_self(mob/user)
+/obj/item/clothing/mask/breath/attack_self__legacy__attackchain(mob/user)
 	adjustmask(user)
 
 /obj/item/clothing/mask/breath/AltClick(mob/user)
@@ -53,7 +52,7 @@
 	icon_state = "voxmask2"
 	item_state = "voxmask2"
 
-/obj/item/clothing/mask/breath/vox/attack_self(mob/user)
+/obj/item/clothing/mask/breath/vox/attack_self__legacy__attackchain(mob/user)
 	return
 
 /obj/item/clothing/mask/breath/vox/AltClick(mob/user)

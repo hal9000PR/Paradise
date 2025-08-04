@@ -132,7 +132,6 @@
 
 	action_icon_state = "demonic_grasp"
 
-	school = "vampire"
 	action_background_icon_state = "bg_vampire"
 	sound = null
 	invocation_type = "none"
@@ -158,6 +157,8 @@
 
 /obj/item/projectile/magic/demonic_grasp/on_hit(atom/target, blocked, hit_zone)
 	. = ..()
+	if(!.)
+		return
 	if(!isliving(target))
 		return
 	var/mob/living/L = target
@@ -190,7 +191,6 @@
 /obj/effect/temp_visual/demonic_snare
 	icon = 'icons/effects/vampire_effects.dmi'
 	icon_state = "immobilized"
-	duration = 1 SECONDS
 
 /datum/spell/vampire/charge
 	name = "Charge (30)"

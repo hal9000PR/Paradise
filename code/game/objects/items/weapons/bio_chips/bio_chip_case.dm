@@ -4,7 +4,6 @@
 	icon = 'icons/obj/bio_chips.dmi'
 	icon_state = "implantcase"
 	item_state = "implantcase"
-	throw_speed = 2
 	throw_range = 5
 	w_class = WEIGHT_CLASS_TINY
 	origin_tech = "materials=1;biotech=2"
@@ -43,7 +42,7 @@
 		var/image/implant_overlay = image('icons/obj/bio_chips.dmi', imp.implant_state)
 		. += implant_overlay
 
-/obj/item/bio_chip_case/attackby(obj/item/W, mob/user)
+/obj/item/bio_chip_case/attackby__legacy__attackchain(obj/item/W, mob/user)
 	..()
 
 	if(is_pen(W))

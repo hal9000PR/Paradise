@@ -2,13 +2,24 @@
 	origin_tech = "biotech=3"
 	force = 1
 	w_class = WEIGHT_CLASS_SMALL
-	throwforce = 0
 	var/slot
 	// DO NOT add slots with matching names to different zones - it will break internal_organs_slot list!
 	var/non_primary = 0
 	var/unremovable = FALSE //Whether it shows up as an option to remove during surgery.
 	/// An associated list of organ datums that this organ has.
 	var/list/datum/organ/organ_datums
+	/// This contains the hidden RnD levels of an organ to prevent rnd from using it.
+	var/hidden_origin_tech
+	/// What is the level of tech for the hidden tech type?
+	var/hidden_tech_level = 1
+	/// How much is this organ worth in the xenobiology organ analyzer?
+	var/analyzer_price = 10
+	/// what quality is this organ? Only useful for xeno organs
+	var/organ_quality = ORGAN_NORMAL
+	/// Does this organ originate from the xenobiology dissection loop?
+	var/is_xeno_organ = FALSE
+	/// Does this organ give a warning upon being inserted?
+	var/warning = FALSE
 
 /obj/item/organ/internal/New(mob/living/carbon/holder)
 	..()
@@ -33,6 +44,11 @@
 		remove(owner, TRUE)
 	QDEL_LIST_ASSOC_VAL(organ_datums) // The removal from internal_organ_datums should be handled when the organ is removed
 	. = ..()
+
+/obj/item/organ/internal/examine(mob/user)
+	. = ..()
+	if(is_xeno_organ)
+		. += "<span class='info'>It looks like it would replace \the [slot]."
 
 /obj/item/organ/internal/proc/insert(mob/living/carbon/M, special = 0, dont_remove_slot = 0)
 	if(!iscarbon(M) || owner == M)
@@ -133,11 +149,24 @@
 /obj/item/organ/internal/emp_act(severity)
 	if(!is_robotic() || emp_proof)
 		return
+
+	var/we_done = FALSE
+	for(var/organ_tag in organ_datums)
+		var/datum/organ/borgan = organ_datums[organ_tag]
+		if(borgan.on_successful_emp())
+			we_done = TRUE
+
+	if(we_done)
+		return
+
+	// No EMP handling was done, lets just give em damage
 	switch(severity)
-		if(1)
+		if(EMP_HEAVY)
 			receive_damage(20, 1)
-		if(2)
+		if(EMP_LIGHT)
 			receive_damage(7, 1)
+		if(EMP_WEAKENED)
+			receive_damage(3, 1)
 
 /obj/item/organ/internal/replaced(mob/living/carbon/human/target)
 	insert(target)
@@ -157,6 +186,9 @@
 /obj/item/organ/internal/proc/on_life()
 	return
 
+/obj/item/organ/internal/proc/dead_process()
+	return
+
 //abstract proc called by carbon/death()
 /obj/item/organ/internal/proc/on_owner_death()
 	return
@@ -164,7 +196,7 @@
 /obj/item/organ/internal/proc/prepare_eat()
 	if(is_robotic())
 		return //no eating cybernetic implants!
-	var/obj/item/food/snacks/organ/S = new
+	var/obj/item/food/organ/S = new
 	S.name = name
 	S.desc = desc
 	S.icon = icon
@@ -179,7 +211,7 @@
 	return S
 
 /obj/item/organ/internal/attempt_become_organ(obj/item/organ/external/parent,mob/living/carbon/human/H)
-	if(parent_organ != parent.limb_name)
+	if(parent_organ != parent.limb_name && parent_organ != "eyes" && parent_organ != "mouth")
 		return FALSE
 	insert(H)
 	return TRUE
@@ -188,14 +220,17 @@
 /obj/item/organ/internal/proc/render()
 	return
 
-/obj/item/organ/internal/attack(mob/living/carbon/M, mob/user)
+/obj/item/organ/internal/attack__legacy__attackchain(mob/living/carbon/M, mob/user)
 	if(M == user && ishuman(user))
 		var/mob/living/carbon/human/H = user
-		var/obj/item/food/snacks/S = prepare_eat()
+		if(is_xeno_organ)
+			to_chat(user, "<span class='warning'>It wouldnt be a very good idea to eat this.</span>")
+			return ..()
+		var/obj/item/food/S = prepare_eat()
 		if(S)
 			H.drop_item()
 			H.put_in_active_hand(S)
-			S.attack(H, H)
+			S.attack__legacy__attackchain(H, H)
 			qdel(src)
 	else
 		..()
@@ -303,11 +338,8 @@
 			var/mob/living/carbon/human/H = owner
 			if(isobj(H.shoes))
 				var/thingy = H.shoes
-				if(H.unEquip(H.shoes))
-					walk_away(thingy,H,15,2)
-					spawn(20)
-						if(thingy)
-							walk(thingy,0)
+				if(H.drop_item_to_ground(H.shoes))
+					GLOB.move_manager.move_away(thingy, H, 15, 2, timeout = 20)
 
 /obj/item/organ/internal/honktumor/cursed
 	unremovable = TRUE
@@ -368,26 +400,6 @@
 			head_organ.facial_colour = "#D8C078"
 			H.update_fhair()
 
-/obj/item/organ/internal/emp_act(severity)
-	if(!is_robotic() || emp_proof)
-		return
-
-	var/we_done = FALSE
-	for(var/organ_tag in organ_datums)
-		var/datum/organ/borgan = organ_datums[organ_tag]
-		if(borgan.on_successful_emp())
-			we_done = TRUE
-
-	if(we_done)
-		return
-
-	// No EMP handling was done, lets just give em damage
-	switch(severity)
-		if(1)
-			receive_damage(20, 1)
-		if(2)
-			receive_damage(7, 1)
-
 /obj/item/organ/internal/handle_germs()
 	..()
 	if(germ_level >= INFECTION_LEVEL_TWO)
@@ -398,3 +410,9 @@
 	SIGNAL_HANDLER
 	REMOVE_TRAIT(src, TRAIT_ORGAN_INSERTED_WHILE_DEAD, "[UID()]")
 	UnregisterSignal(owner, COMSIG_LIVING_DEFIBBED)
+
+/// Checks that the organ is inside of a host and that they are a valid recipient. Used for abductor glands
+/obj/item/organ/internal/proc/owner_check()
+	if(ishuman(owner) || iscarbon(owner))
+		return TRUE
+	return FALSE

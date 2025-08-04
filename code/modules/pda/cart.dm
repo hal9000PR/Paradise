@@ -141,6 +141,14 @@
 		new /datum/data/pda/app/signaller
 	)
 
+/obj/item/cartridge/chef
+	name = "Chef's Guide to the Galaxy"
+	desc = "A data cartridge for portable microcomputers. Contains every cooking recipe ever."
+	icon_state = "cart-chef"
+	programs = list(
+		new /datum/data/pda/app/cookbook
+	)
+
 /obj/item/cartridge/cargo
 	name = "Space Parts & Space Vendors Cartridge"
 	desc = "A data cartridge for portable microcomputers. Has supply records and MULEbot control."
@@ -278,14 +286,13 @@
 /obj/item/cartridge/syndicate
 	name = "Detomatix Cartridge"
 	desc = "Allows you to remotely detonate other people's PDAs through the messenger program."
-	icon_state = "cart"
 	charges = 4
 	messenger_plugins = list(new/datum/data/pda/messenger_plugin/virus/detonate)
 
 /// needed subtype so regular traitors can't open and close nuclear shuttle doors
 /obj/item/cartridge/syndicate/nuclear
 	name = "Nuclear Agent Detomatix Cartridge"
-	desc = "The same reliable Detomatix program except with the added ability of remotely toggling your nuclear shuttle airlock from your PDA"
+	desc = "The same reliable Detomatix program except with the added ability of remotely toggling your nuclear shuttle airlock from your PDA."
 	var/initial_remote_door_id = "smindicate" //Make sure this matches the syndicate shuttle's shield/door id!!	//don't ask about the name, testing.
 	programs = list(
 		new /datum/data/pda/utility/toggle_door
@@ -300,7 +307,6 @@
 /obj/item/cartridge/frame
 	name = "F.R.A.M.E. cartridge"
 	desc = "Allows you to upload a virus onto a PDA with it's messenger on."
-	icon_state = "cart"
 	charges = 5
 	var/telecrystals = 0
 	messenger_plugins = list(

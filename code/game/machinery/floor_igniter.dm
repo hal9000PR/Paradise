@@ -1,7 +1,6 @@
 /obj/machinery/igniter
 	name = "igniter"
 	desc = "It's useful for igniting plasma."
-	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "igniter1"
 	plane = FLOOR_PLANE
 	max_integrity = 300
@@ -57,7 +56,7 @@
 	if(on && !(stat & NOPOWER))
 		var/turf/location = get_turf(src)
 		if(isturf(location))
-			location.hotspot_expose(1000, 500, 1)
+			location.hotspot_expose(1000, 1)
 	return TRUE
 
 /obj/machinery/igniter/Initialize(mapload)
@@ -76,7 +75,6 @@
 /obj/machinery/sparker
 	name = "Mounted igniter"
 	desc = "A wall-mounted ignition device."
-	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "migniter"
 	resistance_flags = FIRE_PROOF
 	var/id = null
@@ -132,7 +130,7 @@
 
 	var/turf/location = get_turf(src)
 	if(isturf(location))
-		location.hotspot_expose(1000, 500, 1)
+		location.hotspot_expose(1000, 500)
 
 	return TRUE
 

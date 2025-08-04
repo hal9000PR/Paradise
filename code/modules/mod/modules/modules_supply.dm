@@ -7,12 +7,20 @@
 		down to the exact coordinates. This information is fed to a central database viewable from the device itself, \
 		though using it to help people is up to you."
 	icon_state = "gps"
-	module_type = MODULE_ACTIVE
+	module_type = MODULE_USABLE
 	complexity = 1
 	use_power_cost = DEFAULT_CHARGE_DRAIN * 0.2
 	incompatible_modules = list(/obj/item/mod/module/gps)
 	cooldown_time = 0.5 SECONDS
-	device = /obj/item/gps/mod
+	allow_flags = MODULE_ALLOW_INACTIVE
+	var/obj/item/gps/mod/gps
+
+/obj/item/mod/module/gps/Initialize(mapload)
+	. = ..()
+	gps = new(src)
+
+/obj/item/mod/module/gps/on_use()
+	gps.attack_self__legacy__attackchain(mod.wearer)
 
 ///Hydraulic Clamp - Lets you pick up and drop crates.
 /obj/item/mod/module/clamp
@@ -312,16 +320,6 @@
 /obj/item/mod/module/ash_accretion/Initialize(mapload)
 	. = ..()
 	armor_mod_2 = new armor_mod_1
-
-/obj/item/mod/module/ash_accretion/Destroy()
-	QDEL_NULL(armor_mod_2)
-	return ..()
-
-/obj/item/mod/armor/mod_ash_accretion
-	armor = list(MELEE = 4, BULLET = 1, LASER = 2, ENERGY = 1, BOMB = 4, RAD = 0, FIRE = 0, ACID = 0)
-
-/obj/item/mod/module/ash_accretion/Initialize(mapload)
-	. = ..()
 	if(!accretion_turfs)
 		accretion_turfs = typecacheof(list(
 			/turf/simulated/floor/plating/asteroid
@@ -330,8 +328,17 @@
 		keep_turfs = typecacheof(list(
 			/turf/simulated/floor/lava,
 			/turf/simulated/floor/indestructible/hierophant,
-			/turf/simulated/floor/indestructible/necropolis
-			))
+			/turf/simulated/floor/indestructible/necropolis,
+			/turf/simulated/floor/indestructible/boss,
+			/turf/simulated/floor/vault/lavaland_air,
+		))
+
+/obj/item/mod/module/ash_accretion/Destroy()
+	QDEL_NULL(armor_mod_2)
+	return ..()
+
+/obj/item/mod/armor/mod_ash_accretion
+	armor = list(MELEE = 4, BULLET = 1, LASER = 2, ENERGY = 1, BOMB = 4, RAD = 0, FIRE = 0, ACID = 0)
 
 /obj/item/mod/module/ash_accretion/on_suit_activation()
 	RegisterSignal(mod.wearer, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
@@ -496,9 +503,13 @@
 	range = 6
 	flag = "bomb"
 	light_range = 1
-	light_power = 1
 	light_color = LIGHT_COLOR_ORANGE
 	ammo_type = /obj/structure/mining_bomb
+
+/obj/item/projectile/bullet/reusable/mining_bomb/handle_drop()
+	if(!dropped)
+		new ammo_type(loc, firer)
+		dropped = TRUE
 
 /obj/structure/mining_bomb
 	name = "mining bomb"
@@ -508,7 +519,6 @@
 	anchored = TRUE
 	resistance_flags = FIRE_PROOF|LAVA_PROOF
 	light_range = 1
-	light_power = 1
 	light_color = LIGHT_COLOR_ORANGE
 	/// Time to prime the explosion
 	var/prime_time = 0.5 SECONDS
@@ -548,7 +558,7 @@
 			mineral_turf.gets_drilled(firer)
 	for(var/mob/living/mob in range(power, src))
 		mob.apply_damage(damage * (ishostile(mob) ? fauna_boost : 1), BRUTE, spread_damage = TRUE)
-		if(!ishostile(mob) || !firer)
+		if(!ishostile(mob) || !firer || mob.stat != CONSCIOUS)
 			continue
 		var/mob/living/simple_animal/hostile/hostile_mob = mob
 		hostile_mob.GiveTarget(firer)

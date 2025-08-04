@@ -2,19 +2,16 @@
 
 /area/mine
 	icon_state = "mining"
-	has_gravity = TRUE
 
 /area/mine/unexplored
 	name = "Mine"
 	icon_state = "unexplored"
 	always_unpowered = TRUE
-	requires_power = TRUE
 	poweralm = FALSE
 	apc_starts_off = TRUE
 	outdoors = TRUE
 	ambientsounds = MINING_SOUNDS
 	sound_environment = SOUND_AREA_ASTEROID
-	flags = NONE
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
 
@@ -46,8 +43,9 @@
 
 /area/mine/outpost
 	name = "Mining Station"
-	icon_state = "mining"
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	request_console_name = "Mining Outpost"
+	request_console_flags = RC_SUPPLY
 
 /area/mine/outpost/airlock
 	name = "Mining Station Airlock"
@@ -60,6 +58,10 @@
 /// subtype of /surface so storms hit there
 /area/lavaland/surface/outdoors/outpost/catwalk
 	name = "Mining Station Catwalk"
+	icon_state = "mining"
+
+/area/lavaland/surface/outdoors/outpost/no_boulder
+	name = "Mining Station"
 	icon_state = "mining"
 
 /area/mine/outpost/comms
@@ -95,6 +97,10 @@
 	name = "Mining Station Storage"
 	icon_state = "storage"
 
+/area/mine/outpost/smith_workshop
+	name = "Smith's Workshop"
+	icon_state = "smith"
+
 /area/mine/outpost/maintenance
 	name = "Mining Station Maintenance"
 	icon_state = "maintcentral"
@@ -122,6 +128,9 @@
 /area/mine/outpost/quartermaster
 	name = "Mining Station Quartermaster's Office"
 	icon_state = "qm"
+	request_console_flags = RC_ASSIST | RC_INFO
+	request_console_name = "Quartermaster's Desk"
+	request_console_announces = TRUE
 
 /area/mine/laborcamp
 	name = "Labor Camp"
@@ -137,7 +146,6 @@
 
 /area/lavaland
 	icon_state = "mining"
-	has_gravity = TRUE
 	sound_environment = SOUND_AREA_LAVALAND
 
 /area/lavaland/surface
@@ -146,14 +154,20 @@
 	always_unpowered = TRUE
 	poweralm = FALSE
 	apc_starts_off = TRUE
-	requires_power = TRUE
 	ambientsounds = MINING_SOUNDS
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
 
+/area/lavaland/surface/gulag_rock
+	name = "Lavaland Wastes"
+	outdoors = TRUE
+
 /area/lavaland/surface/outdoors
 	name = "Lavaland Wastes"
 	outdoors = TRUE
+
+/area/lavaland/surface/outdoors/legion_arena
+	name = "Legion Arena"
 
 /// monsters and ruins spawn here
 /area/lavaland/surface/outdoors/unexplored
@@ -164,3 +178,5 @@
 	icon_state = "danger"
 
 /area/lavaland/surface/outdoors/explored
+
+/area/lavaland/surface/outdoors/targetable

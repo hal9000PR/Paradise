@@ -19,7 +19,6 @@
 
 /mob/living/silicon/robot/attack_slime(mob/living/simple_animal/slime/M)
 	if(..()) //successful slime shock
-		flash_eyes(affect_silicon = 1)
 		var/stunprob = M.powerlevel * 7 + 10
 		if(prob(stunprob) && M.powerlevel >= 8)
 			adjustBruteLoss(M.powerlevel * rand(6,10))
@@ -57,7 +56,7 @@
 				step_away(src, user, 15)
 
 /mob/living/silicon/robot/flash_eyes(intensity = 1, override_blindness_check = 0, affect_silicon = 0, visual = 0, type = /atom/movable/screen/fullscreen/stretch/flash/noise)
-	if(!affect_silicon)
+	if(!affect_silicon || !can_be_flashed())
 		return
 	Confused(intensity * 4 SECONDS)
 	var/software_damage = (intensity * 40)

@@ -3,7 +3,10 @@
 	if(prescription_upgradable && prescription)
 		upgrade_prescription()
 
-/obj/item/clothing/glasses/attackby(obj/item/I, mob/user)
+	if(hide_examine)
+		ADD_TRAIT(src, TRAIT_HIDE_EXAMINE, INNATE_TRAIT)
+
+/obj/item/clothing/glasses/attackby__legacy__attackchain(obj/item/I, mob/user)
 	if(!prescription_upgradable || user.stat || user.restrained() || !ishuman(user))
 		return ..()
 	var/mob/living/carbon/human/H = user
@@ -13,7 +16,7 @@
 		if(prescription)
 			to_chat(H, "<span class='warning'>You can't possibly imagine how adding more lenses would improve [src].</span>")
 			return
-		H.unEquip(I)
+		H.drop_item_to_ground(I)
 		upgrade_prescription(I)
 		to_chat(H, "<span class='notice'>You fit [src] with lenses from [I].</span>")
 
@@ -103,7 +106,7 @@
 
 /obj/item/clothing/glasses/meson/equipped(mob/user, slot, initial)
 	. = ..()
-	if(active_on_equip && slot == SLOT_HUD_GLASSES)
+	if(active_on_equip && slot == ITEM_SLOT_EYES)
 		ADD_TRAIT(user, TRAIT_MESON_VISION, "meson_glasses[UID()]")
 
 /obj/item/clothing/glasses/meson/dropped(mob/user)
@@ -125,6 +128,7 @@
 	icon_state = "sunhudmeson"
 	flash_protect = FLASH_PROTECTION_FLASH
 	tint = FLASH_PROTECTION_FLASH
+	hide_examine = TRUE
 
 /obj/item/clothing/glasses/meson/prescription
 	prescription = TRUE
@@ -169,14 +173,13 @@
 	actions_types = list(/datum/action/item_action/toggle_research_scanner)
 
 /obj/item/clothing/glasses/science/item_action_slot_check(slot)
-	if(slot == SLOT_HUD_GLASSES)
+	if(slot == ITEM_SLOT_EYES)
 		return TRUE
 
 /obj/item/clothing/glasses/science/night
 	name = "night vision science goggles"
 	desc = "Now you can science in darkness."
 	icon_state = "nvpurple"
-	item_state = "glasses"
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE //don't render darkness while wearing these
 
@@ -206,6 +209,12 @@
 		"Grey" = 'icons/mob/clothing/species/grey/eyes.dmi',
 		"Kidan" = 'icons/mob/clothing/species/kidan/eyes.dmi'
 		)
+
+/obj/item/clothing/glasses/night/syndicate_fake
+	name = "suspicious night vision goggles"
+	desc = "A dark red tacticool goggles anyone would go operate with."
+	icon_state = "securityhudnight"
+	color = "#d62d20" // I want it to color the on mob's sprite as well, but i don't know how to actually.
 
 /obj/item/clothing/glasses/eyepatch
 	name = "eyepatch"
@@ -282,7 +291,6 @@
 		)
 
 /obj/item/clothing/glasses/regular/hipster
-	name = "prescription glasses"
 	desc = "Made by Uncool. Co."
 	icon_state = "hipster_glasses"
 	item_state = "hipster_glasses"
@@ -327,6 +335,37 @@
 		)
 	prescription_upgradable = TRUE
 
+/obj/item/clothing/glasses/syndie
+	name = "suspicious glasses"
+	desc = "Suspicious-looking, stylish glasses. They don't look like they could protect you from a flash, however they have a slot around their lenses where something could easily be inserted."
+	icon_state = "syndieglasses"
+	item_state = "syndieglasses"
+
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/eyes.dmi',
+		"Drask" = 'icons/mob/clothing/species/drask/eyes.dmi',
+		"Kidan" = 'icons/mob/clothing/species/kidan/eyes.dmi'
+		)
+	prescription_upgradable = TRUE
+
+/obj/item/clothing/glasses/syndie_sun
+	name = "suspicious shaded glasses"
+	desc = "Suspicious-looking, dark red, stylish glasses. They appear to have an additional eye-shielding layer over the lenses."
+	icon_state = "syndieglasses_sun"
+	item_state = "syndieglasses_sun"
+
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi',
+		"Grey" = 'icons/mob/clothing/species/grey/eyes.dmi',
+		"Drask" = 'icons/mob/clothing/species/drask/eyes.dmi',
+		"Kidan" = 'icons/mob/clothing/species/kidan/eyes.dmi'
+		)
+	see_in_dark = 1
+	flash_protect = FLASH_PROTECTION_FLASH
+	tint = FLASH_PROTECTION_FLASH
+	prescription_upgradable = TRUE
+
 /obj/item/clothing/glasses/sunglasses
 	name = "sunglasses"
 	desc = "Strangely ancient technology used to help provide rudimentary eye cover. Enhanced shielding blocks many flashes."
@@ -343,15 +382,13 @@
 		"Grey" = 'icons/mob/clothing/species/grey/eyes.dmi',
 		"Kidan" = 'icons/mob/clothing/species/kidan/eyes.dmi'
 		)
+	hide_examine = TRUE
 
 /obj/item/clothing/glasses/sunglasses_fake
 	name = "cheap sunglasses"
 	desc = "Cheap, plastic sunglasses. They don't even have UV protection."
 	icon_state = "sun"
 	item_state = "sunglasses"
-	see_in_dark = 0
-	flash_protect = FLASH_PROTECTION_NONE
-	tint = FLASH_PROTECTION_NONE
 	prescription_upgradable = TRUE
 
 	sprite_sheets = list(
@@ -366,11 +403,11 @@
 	desc = "Somehow these seem even more out-of-date than normal sunglasses."
 	actions_types = list(/datum/action/item_action/noir)
 
-/obj/item/clothing/glasses/sunglasses/noir/attack_self(mob/user)
+/obj/item/clothing/glasses/sunglasses/noir/attack_self__legacy__attackchain(mob/user)
 	toggle_noir(user)
 
 /obj/item/clothing/glasses/sunglasses/noir/item_action_slot_check(slot)
-	if(slot == SLOT_HUD_GLASSES)
+	if(slot == ITEM_SLOT_EYES)
 		return TRUE
 
 /obj/item/clothing/glasses/sunglasses/noir/proc/toggle_noir(mob/user)
@@ -381,9 +418,9 @@
 	name = "agreeable glasses"
 	desc = "H.C Limited edition."
 	var/punused = FALSE
-	actions_types = list(/datum/action/item_action/YEEEAAAAAHHHHHHHHHHHHH)
+	actions_types = list(/datum/action/item_action/yeeeaaaaahhhhhhhhhhhhh)
 
-/obj/item/clothing/glasses/sunglasses/yeah/attack_self(mob/user)
+/obj/item/clothing/glasses/sunglasses/yeah/attack_self__legacy__attackchain(mob/user)
 	pun(user)
 
 /obj/item/clothing/glasses/sunglasses/yeah/proc/pun(mob/user)
@@ -404,7 +441,7 @@
 	actions_types = list(/datum/action/item_action/toggle_research_scanner)
 
 /obj/item/clothing/glasses/sunglasses/reagent/item_action_slot_check(slot)
-	if(slot == SLOT_HUD_GLASSES)
+	if(slot == ITEM_SLOT_EYES)
 		return TRUE
 
 /obj/item/clothing/glasses/virussunglasses
@@ -429,7 +466,7 @@
 	flags = NODROP
 
 /obj/item/clothing/glasses/sunglasses/lasers/equipped(mob/user, slot) //grant them laser eyes upon equipping it.
-	if(slot == SLOT_HUD_GLASSES)
+	if(slot == ITEM_SLOT_EYES)
 		ADD_TRAIT(user, TRAIT_LASEREYES, "admin_zapglasses")
 		user.regenerate_icons()
 	..(user, slot)
@@ -451,7 +488,7 @@
 		"Kidan" = 'icons/mob/clothing/species/kidan/eyes.dmi'
 		)
 
-/obj/item/clothing/glasses/welding/attack_self(mob/user)
+/obj/item/clothing/glasses/welding/attack_self__legacy__attackchain(mob/user)
 	weldingvisortoggle(user)
 
 /obj/item/clothing/glasses/welding/superior
@@ -459,7 +496,6 @@
 	desc = "Welding goggles made from more expensive materials, strangely smells like potatoes."
 	icon_state = "rwelding-g"
 	item_state = "rwelding-g"
-	flash_protect = FLASH_PROTECTION_WELDER
 	tint = FLASH_PROTECTION_NONE
 
 /obj/item/clothing/glasses/sunglasses/blindfold
@@ -514,13 +550,13 @@
 
 /obj/item/clothing/glasses/thermal/eyepatch
 	name = "optical thermal eyepatch"
-	desc = "An eyepatch with built-in thermal optics"
+	desc = "An eyepatch with built-in thermal optics."
 	icon_state = "eyepatch"
 	item_state = "eyepatch"
 
 /obj/item/clothing/glasses/thermal/jensen
 	name = "optical thermal implant"
-	desc = "A set of implantable lenses designed to augment your vision"
+	desc = "A set of implantable lenses designed to augment your vision."
 	icon_state = "thermalimplants"
 	item_state = "syringe_kit"
 

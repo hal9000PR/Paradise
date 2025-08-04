@@ -7,11 +7,8 @@
 	icon_dead = "alienh_dead"
 	icon_gib = "syndicate_gib"
 	gender = FEMALE
-	response_help = "pokes"
-	response_disarm = "shoves"
-	response_harm = "hits"
 	speed = 0
-	butcher_results = list(/obj/item/food/snacks/monstermeat/xenomeat= 3, /obj/item/stack/sheet/animalhide/xeno = 1)
+	butcher_results = list(/obj/item/food/monstermeat/xenomeat= 3, /obj/item/stack/sheet/animalhide/xeno = 1)
 	maxHealth = 125
 	health = 125
 	harm_intent_damage = 5
@@ -27,11 +24,9 @@
 	unsuitable_atmos_damage = 15
 	heat_damage_per_tick = 20
 	faction = list("alien")
-	status_flags = CANPUSH
 	minbodytemp = 0
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-	gold_core_spawnable = NO_SPAWN
 	death_sound = 'sound/voice/hiss6.ogg'
 	deathmessage = "lets out a waning guttural screech, green blood bubbling from its maw..."
 	footstep_type = FOOTSTEP_MOB_CLAW
@@ -92,7 +87,7 @@
 	retreat_distance = 5
 	minimum_distance = 5
 	move_to_delay = 4
-	butcher_results = list(/obj/item/food/snacks/monstermeat/xenomeat= 4, /obj/item/stack/sheet/animalhide/xeno = 1)
+	butcher_results = list(/obj/item/food/monstermeat/xenomeat= 4, /obj/item/stack/sheet/animalhide/xeno = 1)
 	projectiletype = /obj/item/projectile/neurotox
 	projectilesound = 'sound/weapons/pierce.ogg'
 	status_flags = 0
@@ -137,10 +132,9 @@
 	icon_living = "queen_s"
 	icon_dead = "queen_dead"
 	bubble_icon = "alienroyal"
-	move_to_delay = 4
 	maxHealth = 400
 	health = 400
-	butcher_results = list(/obj/item/food/snacks/monstermeat/xenomeat= 10, /obj/item/stack/sheet/animalhide/xeno = 2)
+	butcher_results = list(/obj/item/food/monstermeat/xenomeat= 10, /obj/item/stack/sheet/animalhide/xeno = 2)
 	mob_size = MOB_SIZE_LARGE
 
 /obj/item/projectile/neurotox

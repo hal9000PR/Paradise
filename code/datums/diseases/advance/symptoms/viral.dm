@@ -18,7 +18,6 @@ BONUS
 	stealth = 3
 	resistance = 5
 	stage_speed = -3
-	transmittable = 0
 	level = 3
 
 /datum/symptom/viraladaptation/Activate(datum/disease/advance/A)
@@ -54,7 +53,7 @@ BONUS
 	transmittable = 3
 	level = 3
 
-/datum/symptom/viraladaptation/Activate(datum/disease/advance/A)
+/datum/symptom/viralevolution/Activate(datum/disease/advance/A)
 	..()
 	if(prob(SYMPTOM_ACTIVATION_PROB))
 		var/mob/living/M = A.affected_mob

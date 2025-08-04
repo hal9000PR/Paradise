@@ -5,7 +5,6 @@
 	item_state = "capspacehelmet"
 	desc = "A special helmet designed for only the most fashionable of military figureheads."
 	flags_inv = HIDEFACE
-	permeability_coefficient = 0.01
 	armor = list(MELEE = 35, BULLET = 50, LASER = 50, ENERGY = 15, BOMB = 50, RAD = 50, FIRE = INFINITY, ACID = INFINITY)
 
 	sprite_sheets = list(
@@ -14,7 +13,7 @@
 		)
 
 /obj/item/clothing/head/helmet/space/capspace/equipped(mob/living/carbon/human/user, slot)
-	if(ishuman(user) && slot == SLOT_HUD_HEAD)
+	if(ishuman(user) && slot == ITEM_SLOT_HEAD)
 		if(isvox(user))
 			if(flags & BLOCKHAIR)
 				flags &= ~BLOCKHAIR
@@ -27,7 +26,6 @@
 	desc = "A bulky, heavy-duty piece of exclusive Nanotrasen armor. YOU are in charge!"
 	icon_state = "caparmor"
 	item_state = "capspacesuit"
-	w_class = WEIGHT_CLASS_BULKY
 	allowed = list(/obj/item/tank/internals, /obj/item/flashlight,/obj/item/gun/energy, /obj/item/gun/projectile, /obj/item/ammo_box, /obj/item/ammo_casing, /obj/item/melee/baton,/obj/item/restraints/handcuffs)
 	armor = list(MELEE = 35, BULLET = 50, LASER = 50, ENERGY = 15, BOMB = 50, RAD = 50, FIRE = INFINITY, ACID = INFINITY)
 
@@ -74,7 +72,7 @@
 	name = "officer beret"
 	desc = "An armored beret commonly used by special operations officers."
 	icon = 'icons/obj/clothing/head/beret.dmi'
-	icon_state = "beret_officer"
+	icon_state = "beret_soo"
 	item_state = 'icons/mob/clothing/head/beret.dmi'
 	icon_override = 'icons/mob/clothing/head/beret.dmi'
 	flags =  STOPSPRESSUREDMAGE | THICKMATERIAL
@@ -85,8 +83,8 @@
 		)
 
 /obj/item/clothing/head/helmet/space/deathsquad/beret/solgov
-	name = "\improper Trans-Solar Federation commander's beret"
-	desc = "A camouflaged beret adorned with the star of the Trans-Solar Federation, worn by generals of the Trans-Solar Federation."
+	name = "\improper TSF staff officer's beret"
+	desc = "A camouflaged beret adorned with the star of the Trans-Solar Federation, worn by high-ranking officers of the Trans-Solar Federation."
 	icon_state = "beret_solgovcelite"
 
 /obj/item/clothing/suit/space/deathsquad/officer
@@ -98,12 +96,11 @@
 	flags_inv = 0
 	slowdown = 0
 	armor = list(MELEE = 200, BULLET = 200, LASER = 50, ENERGY = 50, BOMB = INFINITY, RAD = INFINITY, FIRE = INFINITY, ACID = INFINITY)
-	resistance_flags = FIRE_PROOF | ACID_PROOF
-	flags_2 = RAD_PROTECT_CONTENTS_2
 	w_class = WEIGHT_CLASS_NORMAL
 
 /obj/item/clothing/suit/space/deathsquad/officer/solgov
-	name = "\improper Trans-Solar Federation commander's jacket"
+	name = "\improper TSF staff officer's jacket"
+	desc = "A stylish, heavily armored jacket worn by high-ranking officers of the Trans-Solar Federation."
 	icon_state = "solgovcommander"
 	item_state = "solgovcommander"
 
@@ -122,7 +119,7 @@
 	flags_cover = HEADCOVERSEYES
 	dog_fashion = /datum/dog_fashion/head/santa
 
-/obj/item/clothing/head/helmet/space/santahat/attack_self(mob/user as mob)
+/obj/item/clothing/head/helmet/space/santahat/attack_self__legacy__attackchain(mob/user as mob)
 	if(src.icon_state == "santahat")
 		src.icon_state = "santahat_beard"
 		src.item_state = "santahat_beard"
@@ -208,7 +205,6 @@
 /obj/item/clothing/suit/space/eva
 	name = "EVA suit"
 	icon_state = "spacenew"
-	item_state = "s_suit"
 	desc = "A lightweight space suit with the basic ability to protect the wearer from the vacuum of space during emergencies."
 	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 10, FIRE = 50, ACID = 95)
 
@@ -228,7 +224,6 @@
 /obj/item/clothing/head/helmet/space/eva
 	name = "EVA helmet"
 	icon_state = "spacenew"
-	item_state = "s_helmet"
 	desc = "A lightweight space helmet with the basic ability to protect the wearer from the vacuum of space during emergencies."
 	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES
 	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 10, FIRE = 50, ACID = 95)

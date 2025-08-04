@@ -80,7 +80,10 @@ CREATE TABLE `characters` (
   `hair_gradient_colour` varchar(7) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#000000',
   `hair_gradient_alpha` tinyint(3) UNSIGNED NOT NULL DEFAULT '255',
   `custom_emotes` LONGTEXT COLLATE 'utf8mb4_unicode_ci' DEFAULT NULL,
+  `runechat_color` VARCHAR(7) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#FFFFFF',
   `cyborg_brain_type` ENUM('MMI', 'Robobrain', 'Positronic') NOT NULL DEFAULT 'MMI',
+  `pda_ringtone` VARCHAR(16) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+  `quirks` LONGTEXT COLLATE 'utf8mb4_unicode_ci' DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ckey` (`ckey`)
 ) ENGINE=InnoDB AUTO_INCREMENT=125467 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -249,7 +252,7 @@ CREATE TABLE `feedback` (
   `datetime` datetime NOT NULL,
   `round_id` int(8) NOT NULL,
   `key_name` varchar(32) NOT NULL,
-  `key_type` enum('text', 'amount', 'tally', 'nested tally', 'associative') NOT NULL,
+  `key_type` ENUM('text', 'amount', 'tally', 'nested tally', 'associative', 'ledger', 'nested ledger') NOT NULL,
   `version` tinyint(3) UNSIGNED NOT NULL,
   `json` LONGTEXT NOT NULL COLLATE 'utf8mb4_general_ci',
   PRIMARY KEY (`id`)
@@ -279,6 +282,7 @@ CREATE TABLE `player` (
   `default_slot` smallint(4) DEFAULT '1',
   `toggles` int(11) DEFAULT NULL,
   `toggles_2` int(11) DEFAULT NULL,
+  `toggles_3` int(11) DEFAULT NULL,
   `sound` mediumint(8) DEFAULT '31',
   `light` MEDIUMINT(3) NOT NULL DEFAULT '7',
   `glowlevel` TINYINT(1) NOT NULL DEFAULT '1',
@@ -300,6 +304,7 @@ CREATE TABLE `player` (
   `server_region` VARCHAR(32) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
   `muted_adminsounds_ckeys` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
   `viewrange` VARCHAR(5) NOT NULL DEFAULT '19x15' COLLATE 'utf8mb4_general_ci',
+  `map_vote_pref_json` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ckey` (`ckey`),
   KEY `lastseen` (`lastseen`),
@@ -408,9 +413,11 @@ CREATE TABLE `notes` (
   `automated` TINYINT(3) UNSIGNED NULL DEFAULT '0',
   `deleted` TINYINT(4) NOT NULL DEFAULT '0',
   `deletedby` VARCHAR(32) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+  `public` TINYINT(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `ckey` (`ckey`),
-  KEY `deleted` (`deleted`)
+  KEY `deleted` (`deleted`),
+  KEY `public` (`public`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -535,11 +542,11 @@ CREATE TABLE `changelog` (
 --
 DROP TABLE IF EXISTS `ip2group`;
 CREATE TABLE `ip2group` (
-  `ip` varchar (18) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `date` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-  `groupstr` varchar (32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`ip`),
-  KEY `groupstr` (`groupstr`)
+	`ip` INT(10) UNSIGNED NOT NULL,
+	`date` TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+	`groupstr` INT(10) UNSIGNED NOT NULL,
+	PRIMARY KEY (`ip`) USING BTREE,
+	INDEX `groupstr` (`groupstr`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --

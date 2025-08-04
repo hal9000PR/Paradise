@@ -25,6 +25,9 @@
 /obj/item/mecha_parts/mecha_equipment/weapon/proc/get_shot_amount()
 	return projectiles_per_shot
 
+/obj/item/mecha_parts/mecha_equipment/weapon/get_destroy_sound()
+	return chassis.weapdestrsound
+
 /obj/item/mecha_parts/mecha_equipment/weapon/action(target, params)
 	if(!action_checks(target))
 		return
@@ -84,7 +87,6 @@
 	energy_drain = 30
 	projectile = /obj/item/projectile/beam/disabler
 	fire_sound = 'sound/weapons/taser2.ogg'
-	harmful = FALSE
 
 /obj/item/mecha_parts/mecha_equipment/weapon/energy/laser/heavy
 	equip_cooldown = 1 SECONDS
@@ -94,6 +96,18 @@
 	energy_drain = 60
 	projectile = /obj/item/projectile/beam/laser/heavylaser
 	fire_sound = 'sound/weapons/lasercannonfire.ogg'
+
+/obj/item/mecha_parts/mecha_equipment/weapon/energy/shotgun_disabler
+	equip_cooldown = 2 SECONDS
+	name = "MESG-01 Disabler Scattercannon"
+	desc = "A large-bore energy shotgun, configured to fire a large blast of disabling pellets."
+	icon_state = "mecha_disabler_shotgun"
+	origin_tech = "materials=4;combat=5;"
+	energy_drain = 30 // This is per shot + 1x cost, so 300 per shot
+	projectile = /obj/item/projectile/beam/disabler/pellet
+	projectiles_per_shot = 9
+	variance = 40
+	fire_sound = 'sound/weapons/taser2.ogg'
 
 /obj/item/mecha_parts/mecha_equipment/weapon/energy/ion
 	equip_cooldown = 4 SECONDS
@@ -229,11 +243,8 @@
 			var/mob/living/carbon/human/H = M
 			if(isobj(H.shoes) && !(H.shoes.flags & NODROP))
 				var/thingy = H.shoes
-				H.unEquip(H.shoes)
-				walk_away(thingy,chassis,15,2)
-				spawn(20)
-					if(thingy)
-						walk(thingy,0)
+				H.drop_item_to_ground(thingy)
+				GLOB.move_manager.move_away(thingy, chassis, 15, 2, timeout=20)
 	for(var/obj/mecha/combat/reticence/R in oview(6, chassis))
 		R.occupant_message("\The [R] has protected you from [chassis]'s HONK at the cost of some power.")
 		R.use_power(R.get_charge() / 4)
@@ -270,7 +281,8 @@
 	playsound(src, 'sound/weapons/gun_interactions/rearm.ogg', 50, 1)
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/Topic(href, href_list)
-	..()
+	if(..())
+		return
 	if(href_list["rearm"])
 		rearm()
 
@@ -301,7 +313,6 @@
 	return FALSE
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/scattershot
-	equip_cooldown = 2 SECONDS
 	name = "\improper LBX AC 10 \"Scattershot\""
 	icon_state = "mecha_scatter"
 	origin_tech = "combat=4"
@@ -312,6 +323,12 @@
 	projectiles_per_shot = 4
 	variance = 25
 	harmful = TRUE
+	equip_cooldown = 2 SECONDS
+
+/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/scattershot/syndie //Version used for Dark Gygax
+	name = "\improper LBX AC 20-r \"Scattershot .45\""
+	origin_tech = "combat=4;syndicate=2" //Crew is not going to get it normally anyways
+	projectile = /obj/item/projectile/bullet/midbullet
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/lmg
 	equip_cooldown = 1 SECONDS
@@ -351,13 +368,10 @@
 	projectiles = 9
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/flashbang
-	equip_cooldown = 6 SECONDS
 	name = "\improper SGL-6 Flashbang Launcher"
 	icon_state = "mecha_grenadelnchr"
 	origin_tech = "combat=4;engineering=4"
 	projectile = /obj/item/grenade/flashbang
-	fire_sound = 'sound/effects/bang.ogg'
-	projectiles = 6
 	missile_speed = 1.5
 	projectile_energy_cost = 800
 	var/det_time = 20
@@ -375,7 +389,8 @@
 		F.prime()
 	do_after_cooldown()
 
-/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/flashbang/clusterbang//Because I am a heartless bastard -Sieve
+//Because I am a heartless bastard -Sieve
+/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/flashbang/clusterbang
 	equip_cooldown = 9 SECONDS
 	name = "\improper SOB-3 Clusterbang Launcher"
 	desc = "A weapon for combat exosuits. Launches primed clusterbangs. You monster."
@@ -383,13 +398,39 @@
 	projectiles = 3
 	projectile = /obj/item/grenade/clusterbuster
 	projectile_energy_cost = 1600 //getting off cheap seeing as this is 3 times the flashbangs held in the grenade launcher.
-	size=1
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/flashbang/clusterbang/limited/get_equip_info()//Limited version of the clusterbang launcher that can't reload
 	return "<span style=\"color:[equip_ready?"#0f0":"#f00"];\">*</span>&nbsp;[chassis.selected==src?"<b>":"<a href='byond://?src=[chassis.UID()];select_equip=\ref[src]'>"][name][chassis.selected==src?"</b>":"</a>"]\[[projectiles]\]"
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/flashbang/clusterbang/limited/rearm()
 	return//Extra bit of security
+
+/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/cleaner
+	name = "\improper N23 Rotary Janitation Launcher"
+	desc = "A tool of mass cleaning. Launches primed cleaning foam grenades. Major slipping hazard."
+	icon_state = "mecha_grenadelnchr"
+	origin_tech = "combat=4;engineering=4"
+	projectile = /obj/item/grenade/chem_grenade/cleaner
+	missile_speed = 1.5
+	size = 1
+	/// Time until grenade detonates
+	var/det_time = 2 SECONDS
+
+/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/cleaner/action(target, params)
+	if(!action_checks(target))
+		return
+	set_ready_state(0)
+	var/obj/item/grenade/chem_grenade/cleaner/grenade = new projectile(chassis.loc)
+	playsound(chassis, fire_sound, 50, TRUE)
+	grenade.throw_at(target, missile_range, missile_speed)
+	projectiles--
+	log_message("Fired from [name], targeting [target].")
+	log_attack(chassis.occupant, target, "Cleaning grenade fired from [name], targeting [target].")
+	addtimer(CALLBACK(grenade, TYPE_PROC_REF(/obj/item/grenade/chem_grenade/cleaner, prime)), det_time)
+	do_after_cooldown()
+
+/obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/cleaner/can_attach(obj/mecha/nkarrdem/M as obj)
+	return istype(M) && length(M.equipment) < M.max_equip
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/banana_mortar
 	equip_cooldown = 2 SECONDS
@@ -458,7 +499,6 @@
 	fire_sound = 'sound/weapons/whip.ogg'
 	projectiles = 10
 	missile_speed = 1
-	missile_range = 30
 	projectile_energy_cost = 50
 	harmful = FALSE
 

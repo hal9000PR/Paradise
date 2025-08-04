@@ -51,7 +51,7 @@
 	name = "\improper Prison Cell Block"
 	icon_state = "brig"
 
-/area/station/security/prison/cell_block/A
+/area/station/security/prison/cell_block/a
 	name = "\improper Prison Cell Block A"
 	icon_state = "brigcella"
 
@@ -129,8 +129,6 @@
 	icon_state = "checkpoint1"
 
 /area/station/security/checkpoint/secondary
-	name = "\improper Security Checkpoint"
-	icon_state = "checkpoint1"
 	request_console_flags = RC_ASSIST | RC_INFO
 	request_console_name = "Security"
 

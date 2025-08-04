@@ -67,7 +67,6 @@
 		/datum/surgery/intermediate/bleeding
 	)
 
-	insert_self_after = TRUE
 
 /datum/surgery_step/proxy/cavity_manipulation/robotic
 	name = "Robotic Cavity Manipulation (proxy)"
@@ -151,6 +150,12 @@
 		/obj/item/stack/rods = 60
 	)
 
+	preop_sound = list(
+		TOOL_DRILL = 'sound/items/drill_hit.ogg',
+		/obj/item/screwdriver/power = 'sound/items/drill_hit.ogg',
+		/obj/item/pen = 'sound/surgery/organ2.ogg',
+		/obj/item/stack/rods = 'sound/surgery/organ2.ogg'
+	)
 	time = 5.4 SECONDS
 
 /datum/surgery_step/cavity/make_space/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)
@@ -183,6 +188,9 @@
 		TOOL_WELDER = 30
 	)
 
+	preop_sound = 'sound/surgery/cautery1.ogg'
+	success_sound = 'sound/surgery/cautery2.ogg'
+	failure_sound = 'sound/items/welder.ogg'
 	time = 2.4 SECONDS
 
 /datum/surgery_step/cavity/close_space/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool, datum/surgery/surgery)

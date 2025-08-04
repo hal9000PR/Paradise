@@ -1,5 +1,5 @@
 /* CONTENTS:
-* 1. SABRE SMG
+* 1. SABER SMG
 * 2. C-20R SMG
 * 3. WT-550 PDW
 * 4. TYPE U3 UZI
@@ -13,7 +13,6 @@
 */
 
 /obj/item/gun/projectile/automatic
-	w_class = WEIGHT_CLASS_NORMAL
 	var/alarmed = 0
 	var/select = 1
 	can_tactical = TRUE
@@ -32,7 +31,7 @@
 	if(select == 1)
 		. += "[initial(icon_state)]burst"
 
-/obj/item/gun/projectile/automatic/attackby(obj/item/A as obj, mob/user as mob, params)
+/obj/item/gun/projectile/automatic/attackby__legacy__attackchain(obj/item/A as obj, mob/user as mob, params)
 	. = ..()
 	if(.)
 		if(alarmed) // Did the empty clip alarm go off already?
@@ -50,7 +49,7 @@
 				to_chat(user, "<span class='notice'>You insert the magazine into \the [src].</span>")
 			if(alarmed)
 				alarmed = 0
-			user.remove_from_mob(AM)
+			user.unequip(AM)
 			magazine = AM
 			magazine.loc = src
 			chamber_round()
@@ -75,9 +74,7 @@
 
 	playsound(user, 'sound/weapons/gun_interactions/selector.ogg', 100, 1)
 	update_icon()
-	for(var/X in actions)
-		var/datum/action/A = X
-		A.UpdateButtons()
+	update_action_buttons()
 
 /obj/item/gun/projectile/automatic/can_shoot()
 	return get_ammo()
@@ -89,10 +86,10 @@
 		alarmed = 1
 
 //////////////////////////////
-// MARK: SABRE SMG
+// MARK: SABER SMG
 //////////////////////////////
 /obj/item/gun/projectile/automatic/proto
-	name = "\improper NF10 'Sabre' SMG"
+	name = "\improper NF10 'Saber' SMG"
 	desc = "A rejected prototype three-round burst 9mm submachine gun, designated 'SABR'. Surplus of this model are bouncing around armories of Nanotrasen Space Stations. Has a threaded barrel for suppressors."
 	icon_state = "saber"
 	item_state = "saber"
@@ -111,7 +108,6 @@
 	origin_tech = "combat=5;materials=2;syndicate=6"
 	mag_type = /obj/item/ammo_box/magazine/smgm45
 	fire_sound = 'sound/weapons/gunshots/gunshot_smg.ogg'
-	fire_delay = 2
 	burst_size = 2
 	can_bayonet = TRUE
 	knife_x_offset = 26
@@ -121,7 +117,7 @@
 	. = ..()
 	update_icon()
 
-/obj/item/gun/projectile/automatic/c20r/afterattack(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, flag)
+/obj/item/gun/projectile/automatic/c20r/afterattack__legacy__attackchain(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, flag)
 	..()
 	empty_alarm()
 
@@ -141,7 +137,6 @@
 	fire_sound = 'sound/weapons/gunshots/gunshot_rifle.ogg'
 	magin_sound = 'sound/weapons/gun_interactions/batrifle_magin.ogg'
 	magout_sound = 'sound/weapons/gun_interactions/batrifle_magout.ogg'
-	fire_delay = 2
 	can_suppress = FALSE
 	burst_size = 1
 	actions_types = list()
@@ -159,12 +154,19 @@
 /obj/item/gun/projectile/automatic/mini_uzi
 	name = "\improper 'Type U3' Uzi"
 	desc = "A lightweight, burst-fire submachine gun, for when you really want someone dead. Uses 9mm rounds."
+	icon = 'icons/tgmc/objects/guns.dmi'
 	icon_state = "mini-uzi"
+	item_state = "mini-uzi"
 	origin_tech = "combat=4;materials=2;syndicate=4"
 	mag_type = /obj/item/ammo_box/magazine/uzim9mm
 	fire_sound = 'sound/weapons/gunshots/gunshot_pistol.ogg'
 	burst_size = 2
 	can_holster = TRUE // it's a mini-uzi after all
+
+/obj/item/gun/projectile/automatic/mini_uzi/update_overlays()
+	. = ..()
+	if(suppressed)
+		. += image(icon = 'icons/obj/guns/attachments.dmi', icon_state = "suppressor_attached", pixel_x = 13, pixel_y = 5)
 
 //////////////////////////////
 // MARK: M-90GL CARBINE
@@ -181,8 +183,6 @@
 	magout_sound = 'sound/weapons/gun_interactions/batrifle_magout.ogg'
 	can_suppress = FALSE
 	var/obj/item/gun/projectile/revolver/grenadelauncher/underbarrel
-	burst_size = 3
-	fire_delay = 2
 
 /obj/item/gun/projectile/automatic/m90/Initialize(mapload)
 	. = ..()
@@ -193,18 +193,18 @@
 	qdel(underbarrel)
 	return ..()
 
-/obj/item/gun/projectile/automatic/m90/afterattack(atom/target, mob/living/user, flag, params)
+/obj/item/gun/projectile/automatic/m90/afterattack__legacy__attackchain(atom/target, mob/living/user, flag, params)
 	if(select == 2)
-		underbarrel.afterattack(target, user, flag, params)
+		underbarrel.afterattack__legacy__attackchain(target, user, flag, params)
 	else
 		..()
 		return
 
-/obj/item/gun/projectile/automatic/m90/attackby(obj/item/A, mob/user, params)
+/obj/item/gun/projectile/automatic/m90/attackby__legacy__attackchain(obj/item/A, mob/user, params)
 	if(istype(A, /obj/item/ammo_casing))
 		if(istype(A, underbarrel.magazine.ammo_type))
-			underbarrel.attack_self(user)
-			underbarrel.attackby(A, user, params)
+			underbarrel.attack_self__legacy__attackchain(user)
+			underbarrel.attackby__legacy__attackchain(A, user, params)
 	else
 		return ..()
 
@@ -252,7 +252,6 @@
 /obj/item/gun/projectile/automatic/tommygun
 	name = "\improper Thompson SMG"
 	desc = "A genuine 'Chicago Typewriter'."
-	icon_state = "tommygun"
 	item_state = "shotgun"
 	w_class = WEIGHT_CLASS_HUGE
 	slot_flags = 0
@@ -278,7 +277,6 @@
 	magin_sound = 'sound/weapons/gun_interactions/batrifle_magin.ogg'
 	magout_sound = 'sound/weapons/gun_interactions/batrifle_magout.ogg'
 	can_suppress = FALSE
-	burst_size = 3
 	fire_delay = 1
 
 //////////////////////////////
@@ -309,7 +307,6 @@
 	desc = "A compact semi-automatic shotgun for combat in narrow corridors, nicknamed 'Bulldog' by boarding parties. Compatible only with specialized 8-round drum magazines."
 	icon_state = "bulldog"
 	item_state = "bulldog"
-	w_class = WEIGHT_CLASS_NORMAL
 	origin_tech = "combat=6;materials=4;syndicate=6"
 	mag_type = /obj/item/ammo_box/magazine/m12g
 	fire_sound = 'sound/weapons/gunshots/gunshot_shotgun.ogg'
@@ -329,7 +326,7 @@
 	. = ..()
 	if(magazine)
 		. += "[magazine.icon_state]"
-		if(istype(magazine, /obj/item/ammo_box/magazine/m12g/XtrLrg))
+		if(istype(magazine, /obj/item/ammo_box/magazine/m12g/xtr_lrg))
 			w_class = WEIGHT_CLASS_BULKY
 		else
 			w_class = WEIGHT_CLASS_NORMAL
@@ -339,8 +336,8 @@
 /obj/item/gun/projectile/automatic/shotgun/bulldog/update_icon_state()
 	icon_state = "bulldog[chambered ? "" : "-e"]"
 
-/obj/item/gun/projectile/automatic/shotgun/bulldog/attackby(obj/item/A as obj, mob/user as mob, params)
-	if(istype(A, /obj/item/ammo_box/magazine/m12g/XtrLrg))
+/obj/item/gun/projectile/automatic/shotgun/bulldog/attackby__legacy__attackchain(obj/item/A as obj, mob/user as mob, params)
+	if(istype(A, /obj/item/ammo_box/magazine/m12g/xtr_lrg))
 		if(isstorage(loc))	// To prevent inventory exploits
 			var/obj/item/storage/Strg = loc
 			if(Strg.max_w_class < WEIGHT_CLASS_BULKY)
@@ -348,9 +345,13 @@
 				return
 	return ..()
 
-/obj/item/gun/projectile/automatic/shotgun/bulldog/afterattack(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, flag)
+/obj/item/gun/projectile/automatic/shotgun/bulldog/afterattack__legacy__attackchain(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, flag)
 	..()
 	empty_alarm()
+
+// Standard traitor uplink variant
+/obj/item/gun/projectile/automatic/shotgun/bulldog/traitor
+	mag_type = /obj/item/ammo_box/magazine/m12g/rubbershot
 
 //////////////////////////////
 // MARK: IK-M2 LASER CARBINE
@@ -360,7 +361,6 @@
 	desc = "A compact Warp-Tac Industries fully automatic laser carbine that uses disposable laser cartridges rather than an internal power cell. Utilized by Nanotrasen's response teams for combat operations."
 	icon_state = "lasercarbine"
 	item_state = "lasercarbine"
-	w_class = WEIGHT_CLASS_NORMAL
 	origin_tech = "combat=4;materials=2"
 	mag_type = /obj/item/ammo_box/magazine/laser
 	fire_sound = 'sound/weapons/gunshots/gunshot_lascarbine.ogg'
@@ -385,7 +385,7 @@
 
 /obj/item/gun/projectile/automatic/lasercarbine/Initialize(mapload)
 	. = ..()
-	AddComponent(/datum/component/automatic_fire, 0.15 SECONDS, allow_akimbo = FALSE)
+	AddComponent(/datum/component/automatic_fire, 0.30 SECONDS, allow_akimbo = FALSE)
 
 /obj/item/gun/projectile/automatic/lasercarbine/update_icon_state()
 	icon_state = "lasercarbine[magazine ? "-[CEILING(get_ammo(0)/5, 1)*5]" : ""]"

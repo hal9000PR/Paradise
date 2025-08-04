@@ -3,7 +3,6 @@
 	desc = "A large, floating eldritch horror. Its body glows with an evil red light, and its tentacles look to have been dipped in alien blood."
 	mob_biotypes = MOB_ORGANIC | MOB_BEAST
 
-	speed = 1
 	speak_emote = list("telepathically thunders", "telepathically booms")
 	maxHealth = 2500 // same as megafauna
 	health = 2500
@@ -29,12 +28,10 @@
 
 	see_in_dark = 8
 	mob_size = MOB_SIZE_LARGE
-	ventcrawler = VENTCRAWLER_NONE
-	gold_core_spawnable = NO_SPAWN
 
 
 
-/mob/living/simple_animal/hostile/deathsquid/Process_Spacemove(movement_dir = 0)
+/mob/living/simple_animal/hostile/deathsquid/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
 	return 1 //copypasta from carp code
 
 /mob/living/simple_animal/hostile/deathsquid/ex_act(severity)
@@ -47,6 +44,5 @@
 	health = 200
 	speed = 3
 	armour_penetration_flat = 5
-	melee_damage_lower = 10
 	melee_damage_upper = 20
 	environment_smash = 2

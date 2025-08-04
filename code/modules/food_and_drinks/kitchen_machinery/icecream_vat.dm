@@ -29,31 +29,32 @@
 	. = ..()
 	create_reagents(500)
 
-/obj/machinery/icemachine/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/reagent_containers/glass))
+/obj/machinery/icemachine/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/reagent_containers/glass))
 		if(beaker)
 			to_chat(user, "<span class='notice'>A container is already inside [src].</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
 		if(!user.drop_item())
-			to_chat(user, "<span class='warning'>\The [I] is stuck to you!</span>")
-			return
-		beaker = I
-		I.forceMove(src)
-		to_chat(user, "<span class='notice'>You add [I] to [src]</span>")
+			to_chat(user, "<span class='warning'>\The [used] is stuck to you!</span>")
+			return ITEM_INTERACT_COMPLETE
+		beaker = used
+		used.forceMove(src)
+		to_chat(user, "<span class='notice'>You add [used] to [src].</span>")
 		updateUsrDialog()
-		return
-	if(istype(I, /obj/item/food/snacks/frozen/icecream))
-		if(!I.reagents.has_reagent("sprinkles"))
-			if(I.reagents.total_volume > 29)
-				I.reagents.remove_any(1)
-			I.reagents.add_reagent("sprinkles", 1)
-			I.name += " with sprinkles"
-			I.desc += ". This also has sprinkles."
-		else
-			to_chat(user, "<span class='notice'>This [I] already has sprinkles.</span>")
-		return
-	return ..()
+		return ITEM_INTERACT_COMPLETE
 
+	if(istype(used, /obj/item/food/frozen/icecream))
+		if(!used.reagents.has_reagent("sprinkles"))
+			if(used.reagents.total_volume > 29)
+				used.reagents.remove_any(1)
+			used.reagents.add_reagent("sprinkles", 1)
+			used.name += " with sprinkles"
+			used.desc += ". This also has sprinkles."
+		else
+			to_chat(user, "<span class='notice'>This [used] already has sprinkles.</span>")
+		return ITEM_INTERACT_COMPLETE
+
+	return ..()
 
 /obj/machinery/icemachine/Topic(href, href_list)
 	if(..()) return
@@ -141,7 +142,7 @@
 	else if(href_list["createchoco"])
 		var/name = generate_name(reagents.get_master_reagent_name())
 		name += " Chocolate Cone"
-		var/obj/item/food/snacks/frozen/icecream/icecreamcup/C = new(loc)
+		var/obj/item/food/frozen/icecream/icecreamcup/C = new(loc)
 		C.name = "[name]"
 		C.pixel_x = rand(-8, 8)
 		C.pixel_y = -16
@@ -153,7 +154,7 @@
 	else if(href_list["createcone"])
 		var/name = generate_name(reagents.get_master_reagent_name())
 		name += " Cone"
-		var/obj/item/food/snacks/frozen/icecream/icecreamcone/C = new(loc)
+		var/obj/item/food/frozen/icecream/icecreamcone/C = new(loc)
 		C.name = "[name]"
 		C.pixel_x = rand(-8, 8)
 		C.pixel_y = -16
@@ -165,7 +166,7 @@
 	else if(href_list["createwaffle"])
 		var/name = generate_name(reagents.get_master_reagent_name())
 		name += " Waffle Cone"
-		var/obj/item/food/snacks/frozen/icecream/wafflecone/C = new(loc)
+		var/obj/item/food/frozen/icecream/wafflecone/C = new(loc)
 		C.name = "[name]"
 		C.pixel_x = rand(-8, 8)
 		C.pixel_y = -16

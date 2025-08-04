@@ -3,13 +3,12 @@
 	desc = "A folded membrane which rapidly expands into a large cubical shape on activation."
 	icon = 'icons/obj/inflatable.dmi'
 	icon_state = "folded_wall"
-	w_class = WEIGHT_CLASS_NORMAL
 
 /obj/item/inflatable/examine(mob/user)
 	. = ..()
 	. += "<span class='notice'><b>Use this item in hand</b> to create an inflatable wall.</span>"
 
-/obj/item/inflatable/attack_self(mob/user)
+/obj/item/inflatable/attack_self__legacy__attackchain(mob/user)
 	playsound(loc, 'sound/items/zip.ogg', 75, 1)
 	to_chat(user, "<span class='notice'>You inflate [src].</span>")
 	var/obj/structure/inflatable/R = new /obj/structure/inflatable(user.loc)
@@ -22,7 +21,6 @@
 	desc = "An inflated membrane. Do not puncture."
 	density = TRUE
 	anchored = TRUE
-	opacity = FALSE
 	max_integrity = 50
 	icon = 'icons/obj/inflatable.dmi'
 	icon_state = "wall"
@@ -33,8 +31,8 @@
 	. = ..()
 	. += "<span class='notice'><b>Alt-Click</b> to deflate [src].</span>"
 
-/obj/structure/inflatable/Initialize(location)
-	..()
+/obj/structure/inflatable/Initialize(mapload, location)
+	. = ..()
 	recalculate_atmos_connectivity()
 
 /obj/structure/inflatable/Destroy()
@@ -42,7 +40,7 @@
 	. = ..()
 	T.recalculate_atmos_connectivity()
 
-/obj/structure/inflatable/CanPass(atom/movable/mover, turf/target, height=0)
+/obj/structure/inflatable/CanPass(atom/movable/mover, border_dir)
 	return
 
 /obj/structure/inflatable/CanAtmosPass(direction)
@@ -51,7 +49,7 @@
 /obj/structure/inflatable/attack_hand(mob/user)
 	add_fingerprint(user)
 
-/obj/structure/inflatable/attackby(obj/item/I, mob/living/user, params)
+/obj/structure/inflatable/attackby__legacy__attackchain(obj/item/I, mob/living/user, params)
 	if(I.sharp || is_type_in_typecache(I, GLOB.pointed_types))
 		user.do_attack_animation(src, used_item = I)
 		deconstruct(FALSE)
@@ -85,10 +83,9 @@
 /obj/item/inflatable/door
 	name = "inflatable door"
 	desc = "A folded membrane which rapidly expands into a simple door on activation."
-	icon = 'icons/obj/inflatable.dmi'
 	icon_state = "folded_door"
 
-/obj/item/inflatable/door/attack_self(mob/user)
+/obj/item/inflatable/door/attack_self__legacy__attackchain(mob/user)
 	playsound(loc, 'sound/items/zip.ogg', 75, 1)
 	to_chat(user, "<span class='notice'>You inflate [src].</span>")
 	var/obj/structure/inflatable/door/R = new /obj/structure/inflatable/door(user.loc)
@@ -107,7 +104,7 @@
 	var/is_operating = FALSE
 
 /obj/structure/inflatable/door/attack_ai(mob/user as mob) //those aren't machinery, they're just big fucking slabs of a mineral
-	if(isAI(user)) //so the AI can't open it
+	if(is_ai(user)) //so the AI can't open it
 		return
 	else if(isrobot(user)) //but cyborgs can
 		if(get_dist(user,src) <= 1) //not remotely though
@@ -116,7 +113,7 @@
 /obj/structure/inflatable/door/attack_hand(mob/user as mob)
 	return try_to_operate(user)
 
-/obj/structure/inflatable/door/CanPass(atom/movable/mover, turf/target, height=0)
+/obj/structure/inflatable/door/CanPass(atom/movable/mover, border_dir)
 	if(istype(mover, /obj/effect/beam))
 		return !opacity
 	return !density
@@ -162,20 +159,18 @@
 /obj/item/inflatable/torn
 	name = "torn inflatable wall"
 	desc = "A folded membrane which rapidly expands into a large cubical shape on activation. It is too torn to be usable."
-	icon = 'icons/obj/inflatable.dmi'
 	icon_state = "folded_wall_torn"
 
-/obj/item/inflatable/torn/attack_self(mob/user)
+/obj/item/inflatable/torn/attack_self__legacy__attackchain(mob/user)
 	to_chat(user, "<span class='warning'>The inflatable wall is too torn to be inflated!</span>")
 	add_fingerprint(user)
 
 /obj/item/inflatable/door/torn
 	name = "torn inflatable door"
 	desc = "A folded membrane which rapidly expands into a simple door on activation. It is too torn to be usable."
-	icon = 'icons/obj/inflatable.dmi'
 	icon_state = "folded_door_torn"
 
-/obj/item/inflatable/door/torn/attack_self(mob/user)
+/obj/item/inflatable/door/torn/attack_self__legacy__attackchain(mob/user)
 	to_chat(user, "<span class='warning'>The inflatable door is too torn to be inflated!</span>")
 	add_fingerprint(user)
 

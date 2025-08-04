@@ -1,21 +1,3 @@
-// This is important
-/mob/living/attack_ghost(mob/dead/observer/user)
-	if(prob(80)) return ..()
-	var/found = 0
-	for(var/mob/living/simple_animal/hostile/retaliate/R in range(4,src))
-		if(R.faction != "undead" || R == src || prob(50)) continue
-		found = 1
-		R.enemies ^= src
-		if(src in R.enemies)
-			R.visible_message("[R]'s head swivels eerily towards [src].")
-		else
-			R.visible_message("[R] stares at [src] for a minute before turning away.")
-			if(R.target == src)
-				R.target = null
-	if(!found)
-		return ..()
-
-
 /mob/living/simple_animal/hostile/retaliate/ghost
 	icon = 'icons/mob/mob.dmi'
 	name = "ghost"
@@ -25,16 +7,11 @@
 	mob_biotypes = MOB_SPIRIT
 	density = FALSE // ghost
 	invisibility = 60 // no seriously ghost
-	speak_chance = 0 // fyi, ghost
 
 
 	response_help = "passes through" // by the way ghost
-	response_disarm = "shoves"
-	response_harm = "hits"
 	turns_per_move = 10
 	speed = 0
-	maxHealth = 20
-	health = 20
 
 	emote_taunt = list("wails")
 	taunt_chance = 20
@@ -47,14 +24,14 @@
 
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	minbodytemp = 0
-	flying = TRUE
 	pressure_resistance = 300
-	gold_core_spawnable = NO_SPAWN //too spooky for science
 	faction = list("undead") // did I mention ghost
-	loot = list(/obj/item/food/snacks/ectoplasm)
+	loot = list(/obj/item/food/ectoplasm)
 	del_on_death = TRUE
 
-/mob/living/simple_animal/hostile/retaliate/ghost/Process_Spacemove(check_drift = 0)
+	initial_traits = list(TRAIT_FLYING)
+
+/mob/living/simple_animal/hostile/retaliate/ghost/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
 	return 1
 
 /mob/living/simple_animal/hostile/retaliate/ghost/Life(seconds, times_fired)
@@ -71,14 +48,9 @@
 	icon_living = "skeleton_s"
 	icon_dead = "skeleton_l"
 	mob_biotypes = MOB_UNDEAD | MOB_HUMANOID
-	speak_chance = 0
 	turns_per_move = 10
 	response_help = "shakes hands with"
-	response_disarm = "shoves"
-	response_harm = "hits"
 	speed = 0
-	maxHealth = 20
-	health = 20
 
 	harm_intent_damage = 10
 	melee_damage_lower = 5
@@ -101,14 +73,9 @@
 	icon_living = "zombie_s"
 	icon_dead = "zombie_l"
 	mob_biotypes = MOB_UNDEAD | MOB_HUMANOID
-	speak_chance = 0
 	turns_per_move = 10
 	response_help = "gently prods"
-	response_disarm = "shoves"
-	response_harm = "hits"
 	speed = -1
-	maxHealth = 20
-	health = 20
 
 	harm_intent_damage = 10
 	melee_damage_lower = 5

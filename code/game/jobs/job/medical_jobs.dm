@@ -34,18 +34,20 @@
 	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY)
 	outfit = /datum/outfit/job/cmo
 	important_information = "This role requires you to coordinate a department. You are required to be familiar with Standard Operating Procedure (Medical), basic job duties, and act professionally (roleplay)."
+	standard_paycheck = CREW_PAY_HIGH
 
 /datum/outfit/job/cmo
 	name = "Chief Medical Officer"
 	jobtype = /datum/job/cmo
 
-	uniform = /obj/item/clothing/under/rank/medical/chief_medical_officer
+	uniform = /obj/item/clothing/under/rank/medical/cmo
 	suit = /obj/item/clothing/suit/storage/labcoat/cmo
 	shoes = /obj/item/clothing/shoes/brown
+	head = /obj/item/clothing/head/cmo
 	l_ear = /obj/item/radio/headset/heads/cmo
 	id = /obj/item/card/id/cmo
 	suit_store = /obj/item/flashlight/pen
-	l_hand = /obj/item/storage/firstaid/doctor
+	l_hand = /obj/item/storage/firstaid/regular/doctor
 	pda = /obj/item/pda/heads/cmo
 	backpack_contents = list(
 		/obj/item/melee/classic_baton/telescopic = 1
@@ -54,6 +56,11 @@
 	backpack = /obj/item/storage/backpack/medic
 	satchel = /obj/item/storage/backpack/satchel_med
 	dufflebag = /obj/item/storage/backpack/duffel/medical
+
+
+/datum/outfit/job/cmo/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_MED_EXAMINE, JOB_TRAIT)
 
 /datum/job/doctor
 	title = "Medical Doctor"
@@ -65,28 +72,38 @@
 	supervisors = "the chief medical officer"
 	department_head = list("Chief Medical Officer")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_MORGUE, ACCESS_SURGERY, ACCESS_MAINT_TUNNELS)
+	access = list(
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MORGUE,
+		ACCESS_SURGERY
+	)
 	alt_titles = list("Surgeon","Nurse")
 	minimal_player_age = 3
 	exp_map = list(EXP_TYPE_CREW = 180)
 	outfit = /datum/outfit/job/doctor
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/doctor
 	name = "Medical Doctor"
 	jobtype = /datum/job/doctor
 
 	uniform = /obj/item/clothing/under/rank/medical/doctor
-	suit = /obj/item/clothing/suit/storage/labcoat
+	suit = /obj/item/clothing/suit/storage/labcoat/medical
 	shoes = /obj/item/clothing/shoes/white
 	l_ear = /obj/item/radio/headset/headset_med
 	id = /obj/item/card/id/medical
 	suit_store = /obj/item/flashlight/pen
-	l_hand = /obj/item/storage/firstaid/doctor
+	l_hand = /obj/item/storage/firstaid/regular/doctor
 	pda = /obj/item/pda/medical
 
 	backpack = /obj/item/storage/backpack/medic
 	satchel = /obj/item/storage/backpack/satchel_med
 	dufflebag = /obj/item/storage/backpack/duffel/medical
+
+/datum/outfit/job/doctor/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_MED_EXAMINE, JOB_TRAIT)
 
 /datum/job/coroner
 	title = "Coroner"
@@ -98,10 +115,15 @@
 	supervisors = "the chief medical officer"
 	department_head = list("Chief Medical Officer")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS)
+	access = list(
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MORGUE
+	)
 	minimal_player_age = 3
 	exp_map = list(EXP_TYPE_CREW = 180)
 	outfit = /datum/outfit/job/coroner
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/coroner
 	name = "Coroner"
@@ -127,6 +149,10 @@
 					/obj/item/healthanalyzer = 1,
 					/obj/item/storage/box/bodybags = 1)
 
+/datum/outfit/job/coroner/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_CORPSE_RESIST, JOB_TRAIT)
+
 /datum/outfit/job/doctor/pre_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
 	if(H.mind && H.mind.role_alt_title)
@@ -146,8 +172,6 @@
 				else
 					uniform = /obj/item/clothing/under/rank/medical/scrubs/purple
 
-
-
 //Chemist is a medical job damnit	//YEAH FUCK YOU SCIENCE	-Pete	//Guys, behave -Erro
 /datum/job/chemist
 	title = "Chemist"
@@ -159,11 +183,17 @@
 	supervisors = "the chief medical officer"
 	department_head = list("Chief Medical Officer")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_CHEMISTRY, ACCESS_MAINT_TUNNELS, ACCESS_MINERAL_STOREROOM)
+	access = list(
+		ACCESS_CHEMISTRY,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MINERAL_STOREROOM
+	)
 	alt_titles = list("Pharmacist","Pharmacologist")
 	minimal_player_age = 7
 	exp_map = list(EXP_TYPE_CREW = 300)
 	outfit = /datum/outfit/job/chemist
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/chemist
 	name = "Chemist"
@@ -181,6 +211,10 @@
 	satchel = /obj/item/storage/backpack/satchel_chem
 	dufflebag = /obj/item/storage/backpack/duffel/chemistry
 
+/datum/outfit/job/chemist/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_QUICK_HEATER, JOB_TRAIT)
+
 /datum/job/geneticist
 	title = "Geneticist"
 	flag = JOB_GENETICIST
@@ -191,10 +225,17 @@
 	supervisors = "the chief medical officer and the research director"
 	department_head = list("Chief Medical Officer", "Research Director")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_MORGUE, ACCESS_GENETICS, ACCESS_RESEARCH, ACCESS_MAINT_TUNNELS)
+	access = list(
+		ACCESS_GENETICS,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MORGUE,
+		ACCESS_RESEARCH
+	)
 	minimal_player_age = 3
 	exp_map = list(EXP_TYPE_CREW = 180)
 	outfit = /datum/outfit/job/geneticist
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/geneticist
 	name = "Geneticist"
@@ -212,6 +253,9 @@
 	satchel = /obj/item/storage/backpack/satchel_gen
 	dufflebag = /obj/item/storage/backpack/duffel/genetics
 
+/datum/outfit/job/geneticist/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_GENETIC_BUDGET, JOB_TRAIT)
 
 /datum/job/virologist
 	title = "Virologist"
@@ -223,7 +267,12 @@
 	supervisors = "the chief medical officer"
 	department_head = list("Chief Medical Officer")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_VIROLOGY, ACCESS_MAINT_TUNNELS, ACCESS_MINERAL_STOREROOM)
+	access = list(
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MINERAL_STOREROOM,
+		ACCESS_VIROLOGY
+	)
 	alt_titles = list("Pathologist","Microbiologist")
 	minimal_player_age = 7
 	exp_map = list(EXP_TYPE_CREW = 300)
@@ -231,6 +280,8 @@
 		/datum/job_objective/virus_samples
 	)
 	outfit = /datum/outfit/job/virologist
+	standard_paycheck = CREW_PAY_MEDIUM
+
 
 /datum/outfit/job/virologist
 	name = "Virologist"
@@ -249,6 +300,10 @@
 	satchel = /obj/item/storage/backpack/satchel_vir
 	dufflebag = /obj/item/storage/backpack/duffel/virology
 
+/datum/outfit/job/virologist/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_GERMOPHOBE, JOB_TRAIT)
+
 /datum/job/psychiatrist
 	title = "Psychiatrist"
 	flag = JOB_PSYCHIATRIST
@@ -259,9 +314,14 @@
 	supervisors = "the chief medical officer"
 	department_head = list("Chief Medical Officer")
 	selection_color = "#ffeef0"
-	access = list(ACCESS_MEDICAL, ACCESS_PSYCHIATRIST, ACCESS_MAINT_TUNNELS)
+	access = list(
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_PSYCHIATRIST
+	)
 	alt_titles = list("Psychologist","Therapist")
 	outfit = /datum/outfit/job/psychiatrist
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/psychiatrist
 	name = "Psychiatrist"
@@ -313,14 +373,14 @@
 	exp_map = list(EXP_TYPE_CREW = 180)
 	outfit = /datum/outfit/job/paramedic
 	important_information = "You are the first responder to medical emergencies outside the sanctity of the Medbay. You can also respond to Lavaland emergencies via the mining shuttle located in Cargo."
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/paramedic
 	name = "Paramedic"
 	jobtype = /datum/job/paramedic
 
 	uniform = /obj/item/clothing/under/rank/medical/paramedic
-	shoes = /obj/item/clothing/shoes/black
-	head = /obj/item/clothing/head/soft/blue
+	head = /obj/item/clothing/head/soft/paramedic
 	mask = /obj/item/clothing/mask/cigarette
 	l_ear = /obj/item/radio/headset/headset_med/para
 	id = /obj/item/card/id/paramedic
@@ -335,3 +395,7 @@
 	satchel = /obj/item/storage/backpack/satchel_med
 	dufflebag = /obj/item/storage/backpack/duffel/medical
 	box = /obj/item/storage/box/engineer
+
+/datum/outfit/job/paramedic/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_SPEED_DEMON, JOB_TRAIT)

@@ -5,21 +5,22 @@
 	icon_state = "map"
 
 	name = "passive gate"
-	desc = "A one-way air valve that does not require power"
+	desc = "A one-way air valve that does not require power."
 
 	can_unwrench = TRUE
+	can_unwrench_while_on = FALSE
 
 	target_pressure = ONE_ATMOSPHERE
 
 	var/id = null
 
-/obj/machinery/atmospherics/binary/volume_pump/can_be_pulled(user, grab_state, force, show_message)
+/obj/machinery/atmospherics/binary/passive_gate/can_be_pulled(user, grab_state, force, show_message)
 	return FALSE
 
 /obj/machinery/atmospherics/binary/passive_gate/CtrlClick(mob/living/user)
 	if(can_use_shortcut(user))
 		toggle(user)
-		investigate_log("was turned [on ? "on" : "off"] by [key_name(user)]", "atmos")
+		investigate_log("was turned [on ? "on" : "off"] by [key_name(user)]", INVESTIGATE_ATMOS)
 	return ..()
 
 /obj/machinery/atmospherics/binary/passive_gate/examine(mob/user)
@@ -110,7 +111,7 @@
 	switch(action)
 		if("power")
 			toggle()
-			investigate_log("was turned [on ? "on" : "off"] by [key_name(usr)]", "atmos")
+			investigate_log("was turned [on ? "on" : "off"] by [key_name(usr)]", INVESTIGATE_ATMOS)
 			return TRUE
 
 		if("max_rate")
@@ -125,12 +126,4 @@
 			target_pressure = clamp(text2num(params["rate"]), 0 , MAX_OUTPUT_PRESSURE)
 			. = TRUE
 	if(.)
-		investigate_log("was set to [target_pressure] kPa by [key_name(usr)]", "atmos")
-
-/obj/machinery/atmospherics/binary/passive_gate/attackby(obj/item/W, mob/user, params)
-	if(!istype(W, /obj/item/wrench))
-		return ..()
-	if(on)
-		to_chat(user, "<span class='alert'>You cannot unwrench this [src], turn it off first.</span>")
-		return 1
-	return ..()
+		investigate_log("was set to [target_pressure] kPa by [key_name(usr)]", INVESTIGATE_ATMOS)

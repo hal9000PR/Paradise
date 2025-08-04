@@ -5,7 +5,6 @@
 /obj/item/gavelhammer
 	name = "gavel hammer"
 	desc = "Order, order! No bombs in my courthouse."
-	icon = 'icons/obj/items.dmi'
 	icon_state = "gavelhammer"
 	force = 5.0
 	throwforce = 6.0
@@ -21,7 +20,6 @@
 /obj/item/gavelblock
 	name = "gavel block"
 	desc = "Smack it with a gavel hammer when the assistants get rowdy."
-	icon = 'icons/obj/items.dmi'
 	icon_state = "gavelblock"
 	force = 2.0
 	throwforce = 2.0
@@ -29,7 +27,7 @@
 	resistance_flags = FLAMMABLE
 	var/next_gavel_hit
 
-/obj/item/gavelblock/attackby(obj/item/I, mob/user, params)
+/obj/item/gavelblock/attackby__legacy__attackchain(obj/item/I, mob/user, params)
 	if(!istype(I, /obj/item/gavelhammer))
 		return
 	if(world.time > next_gavel_hit)
